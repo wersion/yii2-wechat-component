@@ -2,17 +2,20 @@
 	"name": "ilovintit/yii2-wechat-component",
 	"description": "wechat api",
 	"type": "yii2-extension",
-	"keywords": ["wechat"],
+	"version": "1.0.0",
 	"license": "MIT",
 	"authors": [
 		{
 			"name": "ilovintit",
-			"email": "dggugjj@163.com"
+			"email": "ilovintit@gmail.com"
 		}
 	],
+	"require": {
+        "php": ">=5.4.0"
+    },
 	"autoload": {
 		"psr-4": {
-			"yii\\wechat\\": ""
+			"iit\\wechat\\": ""
 		}
 	}
 }
