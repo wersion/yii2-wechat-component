@@ -1,5 +1,5 @@
 {
-	"name": "ilovintit/yii2-wechat-component",
+	"name": "iit/yii2-wechat-component",
 	"description": "wechat api",
 	"type": "yii2-extension",
 	"version": "1.0.0",
