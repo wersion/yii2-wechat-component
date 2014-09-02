@@ -24,8 +24,8 @@ class Wechat extends Component
     public $token;
     public $openid;
     public $wechatid;
+    private $_apps;
     private $_accessToken;
-    private $_oauth;
 
     /**
      * @throws \yii\base\InvalidParamException
@@ -51,6 +51,7 @@ class Wechat extends Component
     {
         if ($this->_accessToken === null || $forceUpdate === true) {
             $cacheKey = sha1($this->appid);
+            $cacheToken = false;
             $forceUpdate === false && $cacheToken = \Yii::$app->cache->get($cacheKey);
             if ($cacheToken == false || $forceUpdate == true) {
                 $result = $this->httpGet(self::GET_ACCESS_TOKEN_URL, ['appid' => $this->appid, 'secret' => $this->appsecret], false, false);
@@ -97,194 +98,72 @@ class Wechat extends Component
     }
 
     /**
-     * 发送文字类型响应信息
-     * @param $message
-     * @return string
+     * @return \iit\wechat\BaseOAuth $baseOAuth
      */
-
-    public function sendResponseText($message)
-    {
-        $sendArr = [
-            'ToUserName' => $this->openid,
-            'FromUserName' => $this->wechatid,
-            'CreateTime' => time(),
-            'MsgType' => 'text',
-            'Content' => $message
-        ];
-        return $this->sendResponseMessage($sendArr);
-    }
-
-    /**
-     * 发送图片类型响应信息
-     * @param $mediaId
-     * @return string
-     */
-
-    public function sendResponseImage($mediaId)
-    {
-        $sendArr = [
-            'ToUserName' => $this->openid,
-            'FromUserName' => $this->wechatid,
-            'CreateTime' => time(),
-            'MsgType' => 'image',
-            'MediaId' => $mediaId
-        ];
-        return $this->sendResponseMessage($sendArr);
-    }
-
-    /**
-     * 发送声音类型响应信息
-     * @param $mediaId
-     * @return string
-     */
-
-    public function sendResponseVoice($mediaId)
-    {
-        $sendArr = [
-            'ToUserName' => $this->openid,
-            'FromUserName' => $this->wechatid,
-            'CreateTime' => time(),
-            'MsgType' => 'voice',
-            'MediaId' => $mediaId
-        ];
-        return $this->sendResponseMessage($sendArr);
-    }
-
-    /**
-     * 发送视频类型响应信息
-     * @param $mediaId
-     * @param string $title
-     * @param string $description
-     * @return string
-     */
-
-    public function sendResponseVideo($mediaId, $title = '', $description = '')
-    {
-        $sendArr = [
-            'ToUserName' => $this->openid,
-            'FromUserName' => $this->wechatid,
-            'CreateTime' => time(),
-            'MsgType' => 'video',
-            'MediaId' => $mediaId,
-            'Title' => $title,
-            'Description' => $description
-        ];
-        return $this->sendResponseMessage($sendArr);
-    }
-
-    /**
-     * 发送音乐类型响应信息
-     * @param $mediaId
-     * @param string $title
-     * @param string $description
-     * @param string $url
-     * @param string $hqUrl
-     * @return string
-     */
-
-    public function sendResponseMusic($mediaId, $title = '', $description = '', $url = '', $hqUrl = '')
-    {
-        $sendArr = [
-            'ToUserName' => $this->openid,
-            'FromUserName' => $this->wechatid,
-            'CreateTime' => time(),
-            'MsgType' => 'music',
-            'Title' => $title,
-            'Description' => $description,
-            'MusicURL' => $url,
-            'HQMusicUrl' => $hqUrl,
-            'ThumbMediaId' => $mediaId
-        ];
-        return $this->sendResponseMessage($sendArr);
-    }
-
-    /**
-     * 发送图文类型响应信息
-     * @param News $news
-     * @return string
-     */
-
-    public function sendResponseNews(News $news)
-    {
-        if ($news->countNews() != 0) {
-            $articles = [];
-            foreach ($news->getArticles() as $article) {
-                $articles[] = [
-                    'item' => [
-                        'Title' => $article->title,
-                        'Description' => $article->description,
-                        'PicUrl' => $article->picUrl,
-                        'Url' => $article->url,
-                    ]
-                ];
-            }
-            $sendArr = [
-                'ToUserName' => $this->openid,
-                'FromUserName' => $this->wechatid,
-                'CreateTime' => time(),
-                'MsgType' => 'news',
-                'ArticleCount' => $news->countNews(),
-                'Articles' => $articles
-            ];
-            return $this->sendResponseMessage($sendArr);
-        } else {
-            return '';
-        }
-    }
 
     public function getBaseOAuth()
     {
-        return new BaseOAuth($this->appid);
-    }
-
-    public function getUserInfoOAuth()
-    {
-        return new UserInfoOAuth();
-    }
-
-
-    public function uploadImage($filePath)
-    {
-        return $this->uploadMedia($filePath, 'image');
-    }
-
-
-    public function uploadVoice($filePath)
-    {
-        return $this->uploadMedia($filePath, 'voice');
-    }
-
-    public function uploadVideo($filePath)
-    {
-        return $this->uploadMedia($filePath, 'video');
-    }
-
-    public function uploadThumb($filePath)
-    {
-        return $this->uploadMedia($filePath, 'thumb');
+        return $this->getApp('\iit\wechat\BaseOAuth');
     }
 
     /**
-     * 上传媒体文件
-     * @param $filePath
-     * @param $mediaType 媒体文件类型，分别有图片（image）、语音（voice）、视频（video）和缩略图（thumb，主要用于视频与音乐格式的缩略图）
-     * 图片（image）: 1M，支持JPG格式
-     * 语音（voice）：2M，播放长度不超过60s，支持AMR\MP3格式
-     * 视频（video）：10MB，支持MP4格式
-     * 缩略图（thumb）：64KB，支持JPG格式
-     * @return array|bool
+     * @return \iit\wechat\UserInfoOAuth userInfoOAuth
      */
-    public function uploadMedia($filePath, $mediaType)
+
+    public function getUserInfoOAuth()
     {
-        $result = $this->httpPost(self::MEDIA_UPLOAD_URL . '?type=' . $mediaType, [
-            'media' => '@' . $filePath
-        ]);
-        return isset($result['media_id']) ? $result : false;
+        return $this->getApp('\iit\wechat\UserInfoOAuth');
     }
 
-    public function getMedia($mediaId)
-    {
+    /**
+     * @return \iit\wechat\UserManager $userManager
+     */
 
+    public function getUserManager()
+    {
+        return $this->getApp('\iit\wechat\UserManager');
+    }
+
+    /**
+     * @return \iit\wechat\MediaManager mediaManager
+     */
+
+    public function getMediaManager()
+    {
+        return $this->getApp('\iit\wechat\MediaManager');
+    }
+
+    /**
+     * @return \iit\wechat\MenuManager $menuManager
+     */
+
+    public function getMenuManager()
+    {
+        return $this->getApp('\iit\wechat\MenuManager');
+    }
+
+    /**
+     * @return \iit\wechat\ResponseManager $responseManager
+     */
+
+    public function getResponseManager()
+    {
+        return $this->getApp('\iit\wechat\ResponseManager');
+    }
+
+    /**
+     *
+     * @param $appName
+     * @return mixed
+     */
+
+    public function getApp($appName)
+    {
+        $cacheKey = sha1($appName);
+        if (!isset($this->_apps[$cacheKey])) {
+            $this->_apps[$cacheKey] = new $appName($this);
+        }
+        return $this->_apps[$cacheKey];
     }
 
     /**
@@ -403,18 +282,4 @@ class Wechat extends Component
         return false;
     }
 
-    /**
-     * @param array $array
-     * @return string
-     */
-
-    public function sendResponseMessage(array $array, $addXml = true)
-    {
-        $xml = $addXml === true ? '<xml>' : '';
-        foreach ($array as $key => $val) {
-            $xml .= (is_numeric($key) ? '' : '<' . $key . '>') . (is_array($val) ? $this->sendResponseMessage($val, false) : '<![CDATA[' . $val . ']]>') . (is_numeric($key) ? '' : '</' . $key . '> ');
-        }
-        $xml .= $addXml === true ? '</xml> ' : '';
-        return $xml;
-    }
 } 
