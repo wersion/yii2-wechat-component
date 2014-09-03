@@ -1,21 +1,22 @@
 {
-	"name": "iit/yii2-wechat-component",
-	"description": "wechat api",
-	"type": "yii2-extension",
-	"version": "1.0.0",
-	"license": "MIT",
-	"authors": [
-		{
-			"name": "ilovintit",
-			"email": "ilovintit@gmail.com"
-		}
-	],
-	"require": {
-        "php": ">=5.4.0"
+    "name": "iit/yii2-wechat-component",
+    "description": "wechat api",
+    "type": "yii2-extension",
+    "version": "1.0.0",
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "ilovintit",
+            "email": "ilovintit@gmail.com"
+        }
+    ],
+    "require": {
+        "yiisoft/yii2": "*",
+        "iit/yii2-gearman-component": "*"
     },
-	"autoload": {
-		"psr-4": {
-			"iit\\wechat\\": ""
-		}
-	}
+    "autoload": {
+        "psr-4": {
+            "iit\\wechat\\": ""
+        }
+    }
 }
