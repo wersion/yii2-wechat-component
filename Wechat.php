@@ -22,6 +22,7 @@ class Wechat extends Component
     public $appid;
     public $appsecret;
     public $token;
+    public $receiveManager;
     private $_apps;
     private $_accessToken;
 
@@ -142,6 +143,15 @@ class Wechat extends Component
     }
 
     /**
+     * @return \iit\wechat\ServiceManager $serviceManager
+     */
+
+    public function getServiceManager()
+    {
+        return $this->getApp('\iit\wechat\ServiceManager');
+    }
+
+    /**
      *
      * @param $appName
      * @return mixed
@@ -207,6 +217,9 @@ class Wechat extends Component
         if (isset($return['errcode']) && $etry === true && $token != false) {
             switch ($return['errcode']) {
                 case 40001:
+                    $this->getAccessToken(true) && $return = $this->parseHttpResult($url, $params, $method, $token, false);
+                    break;
+                case 42001:
                     $this->getAccessToken(true) && $return = $this->parseHttpResult($url, $params, $method, $token, false);
                     break;
             }
