@@ -9,12 +9,21 @@
 namespace iit\wechat;
 
 
-class ServiceManager
+class ServiceManager extends BaseWechatManager
 {
-    private $_wechat;
 
-    public function __construct(Wechat $wechat)
+    const SERVICE_URL = 'https://api.weixin.qq.com/cgi-bin/message/custom/send';
+
+    public function sendText($openid, $text)
     {
-        $this->_wechat = $wechat;
+        $result = $this->getWechat()->httpRaw(self::SERVICE_URL, json_encode([
+            'touser' => $openid,
+            'msgtype' => 'text',
+            'text' => [
+                'content' => $text
+            ]
+        ]));
+        return $result['errcode'] == 0 ? true : false;
     }
+
 } 
