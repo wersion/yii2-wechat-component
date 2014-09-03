@@ -32,4 +32,10 @@ class BaseWechatManager extends Object
     {
         $this->_wechat = $wechat;
     }
+
+    public function __construct($wechat, $config = [])
+    {
+        $this->setWechat($wechat);
+        parent::__construct($config);
+    }
 } 

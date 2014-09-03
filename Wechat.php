@@ -22,8 +22,6 @@ class Wechat extends Component
     public $appid;
     public $appsecret;
     public $token;
-    public $openid;
-    public $wechatid;
     private $_apps;
     private $_accessToken;
 
@@ -67,20 +65,12 @@ class Wechat extends Component
     }
 
     /**
-     * @param $receiveObj
-     * @return string
+     * @return \iit\wechat\ReceiveManager $receiveManager
      */
 
-    public function receive($receiveObj)
+    public function getReceiveManager()
     {
-        $methodName = 'receive' . ucfirst(strtolower($receiveObj->MsgType));
-        if ($this->hasMethod($methodName)) {
-            $this->openid = $receiveObj->FromUserName;
-            $this->wechatid = $receiveObj->ToUserName;
-            return $this->$methodName($receiveObj);
-        } else {
-            return '';
-        }
+        return $this->getApp('\iit\wechat\ReceiveManager');
     }
 
     /**

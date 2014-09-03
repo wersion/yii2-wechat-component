@@ -9,7 +9,7 @@
 namespace iit\wechat;
 
 
-class BaseOAuth
+class BaseOAuth extends BaseWechatManager
 {
     /**
      * OAuth2.0鉴权地址
@@ -45,15 +45,9 @@ class BaseOAuth
      */
     const ACCESS_TOKEN_CACHE = '_oauth_access_token';
 
-    protected  $_component;
     private $_openid;
     private $_accessToken;
     private $_refreshToken;
-
-    function __construct(Wechat $component)
-    {
-        $this->_component = $component;
-    }
 
     /**
      * 获取openid，优先从缓存里读取
