@@ -21,9 +21,15 @@ class WechatReveiveAction extends Action
      * @param Wechat $wechat
      */
 
-    public function setWechat(Wechat $wechat)
+    public function setWechat($wechat)
     {
-        $this->_wechat = $wechat;
+        if (is_object($wechat)) {
+            $this->_wechat = $wechat;
+        } elseif (is_string($wechat) && \Yii::$app->get($wechat)) {
+            $this->_wechat = \Yii::$app->get($wechat);
+        } else {
+            throw new InvalidParamException('Not Found Wechat Component.');
+        }
     }
 
     /**

@@ -9,14 +9,8 @@
 namespace iit\wechat;
 
 
-class ResponseManager
+class ResponseManager extends BaseWechatManager
 {
-    private $_wechat;
-
-    public function __construct(Wechat $wechat)
-    {
-        $this->_wechat = $wechat;
-    }
 
     /**
      * 发送文字类型响应信息
@@ -24,16 +18,16 @@ class ResponseManager
      * @return string
      */
 
-    public function sendResponseText($message)
+    public function sendText($message)
     {
         $sendArr = [
-            'ToUserName' => $this->openid,
-            'FromUserName' => $this->wechatid,
+            'ToUserName' => $this->getWechat()->getReceiveManager()->getOpenid(),
+            'FromUserName' => $this->getWechat()->getReceiveManager()->getWechatid(),
             'CreateTime' => time(),
             'MsgType' => 'text',
             'Content' => $message
         ];
-        return $this->sendResponseMessage($sendArr);
+        return $this->send($sendArr);
     }
 
     /**
@@ -42,16 +36,18 @@ class ResponseManager
      * @return string
      */
 
-    public function sendResponseImage($mediaId)
+    public function sendImage($mediaId)
     {
         $sendArr = [
-            'ToUserName' => $this->openid,
-            'FromUserName' => $this->wechatid,
+            'ToUserName' => $this->getWechat()->getReceiveManager()->getOpenid(),
+            'FromUserName' => $this->getWechat()->getReceiveManager()->getWechatid(),
             'CreateTime' => time(),
             'MsgType' => 'image',
-            'MediaId' => $mediaId
+            'Image' => [
+                'MediaId' => $mediaId
+            ]
         ];
-        return $this->sendResponseMessage($sendArr);
+        return $this->send($sendArr);
     }
 
     /**
@@ -60,16 +56,18 @@ class ResponseManager
      * @return string
      */
 
-    public function sendResponseVoice($mediaId)
+    public function sendVoice($mediaId)
     {
         $sendArr = [
-            'ToUserName' => $this->openid,
-            'FromUserName' => $this->wechatid,
+            'ToUserName' => $this->getWechat()->getReceiveManager()->getOpenid(),
+            'FromUserName' => $this->getWechat()->getReceiveManager()->getWechatid(),
             'CreateTime' => time(),
             'MsgType' => 'voice',
-            'MediaId' => $mediaId
+            'Voice' => [
+                'MediaId' => $mediaId
+            ]
         ];
-        return $this->sendResponseMessage($sendArr);
+        return $this->send($sendArr);
     }
 
     /**
@@ -80,18 +78,20 @@ class ResponseManager
      * @return string
      */
 
-    public function sendResponseVideo($mediaId, $title = '', $description = '')
+    public function sendVideo($mediaId, $title = '', $description = '')
     {
         $sendArr = [
-            'ToUserName' => $this->openid,
-            'FromUserName' => $this->wechatid,
+            'ToUserName' => $this->getWechat()->getReceiveManager()->getOpenid(),
+            'FromUserName' => $this->getWechat()->getReceiveManager()->getWechatid(),
             'CreateTime' => time(),
             'MsgType' => 'video',
-            'MediaId' => $mediaId,
-            'Title' => $title,
-            'Description' => $description
+            'Video' => [
+                'MediaId' => $mediaId,
+                'Title' => $title,
+                'Description' => $description
+            ]
         ];
-        return $this->sendResponseMessage($sendArr);
+        return $this->send($sendArr);
     }
 
     /**
@@ -104,20 +104,23 @@ class ResponseManager
      * @return string
      */
 
-    public function sendResponseMusic($mediaId, $title = '', $description = '', $url = '', $hqUrl = '')
+    public function sendMusic($mediaId, $title = '', $description = '', $url = '', $hqUrl = '')
     {
         $sendArr = [
-            'ToUserName' => $this->openid,
-            'FromUserName' => $this->wechatid,
+            'ToUserName' => $this->getWechat()->getReceiveManager()->getOpenid(),
+            'FromUserName' => $this->getWechat()->getReceiveManager()->getWechatid(),
             'CreateTime' => time(),
             'MsgType' => 'music',
-            'Title' => $title,
-            'Description' => $description,
-            'MusicURL' => $url,
-            'HQMusicUrl' => $hqUrl,
-            'ThumbMediaId' => $mediaId
+            'Music' => [
+                'Title' => $title,
+                'Description' => $description,
+                'MusicURL' => $url,
+                'HQMusicUrl' => $hqUrl,
+                'ThumbMediaId' => $mediaId
+            ]
+
         ];
-        return $this->sendResponseMessage($sendArr);
+        return $this->send($sendArr);
     }
 
     /**
@@ -126,7 +129,7 @@ class ResponseManager
      * @return string
      */
 
-    public function sendResponseNews(News $news)
+    public function sendNews(News $news)
     {
         if ($news->countNews() != 0) {
             $articles = [];
@@ -141,14 +144,14 @@ class ResponseManager
                 ];
             }
             $sendArr = [
-                'ToUserName' => $this->openid,
-                'FromUserName' => $this->wechatid,
+                'ToUserName' => $this->getWechat()->getReceiveManager()->getOpenid(),
+                'FromUserName' => $this->getWechat()->getReceiveManager()->getWechatid(),
                 'CreateTime' => time(),
                 'MsgType' => 'news',
                 'ArticleCount' => $news->countNews(),
                 'Articles' => $articles
             ];
-            return $this->sendResponseMessage($sendArr);
+            return $this->send($sendArr);
         } else {
             return '';
         }
@@ -159,11 +162,11 @@ class ResponseManager
      * @return string
      */
 
-    public function sendResponseMessage(array $array, $addXml = true)
+    public function send(array $array, $addXml = true)
     {
         $xml = $addXml === true ? '<xml>' : '';
         foreach ($array as $key => $val) {
-            $xml .= (is_numeric($key) ? '' : '<' . $key . '>') . (is_array($val) ? $this->sendResponseMessage($val, false) : '<![CDATA[' . $val . ']]>') . (is_numeric($key) ? '' : '</' . $key . '> ');
+            $xml .= (is_numeric($key) ? '' : '<' . $key . '>') . (is_array($val) ? $this->send($val, false) : '<![CDATA[' . $val . ']]>') . (is_numeric($key) ? '' : '</' . $key . '> ');
         }
         $xml .= $addXml === true ? '</xml> ' : '';
         return $xml;

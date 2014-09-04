@@ -22,7 +22,19 @@ class ServiceManager extends BaseWechatManager
             'text' => [
                 'content' => $text
             ]
-        ]));
+        ], JSON_UNESCAPED_UNICODE));
+        return $result['errcode'] == 0 ? true : false;
+    }
+
+    public function sendImage($openid, $mediaId)
+    {
+        $result = $this->getWechat()->httpRaw(self::SERVICE_URL, json_encode([
+            'touser' => $openid,
+            'msgtype' => 'image',
+            'image' => [
+                'media_id' => $mediaId
+            ]
+        ], JSON_UNESCAPED_UNICODE));
         return $result['errcode'] == 0 ? true : false;
     }
 

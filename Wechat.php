@@ -12,7 +12,7 @@ use Yii;
 use yii\base\Component;
 use yii\base\InvalidParamException;
 
-class Wechat extends Component
+class Wechat extends Component implements \iit\gearman\JobsInterface
 {
 
     const GET_ACCESS_TOKEN_URL = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential';
@@ -23,6 +23,8 @@ class Wechat extends Component
     public $appsecret;
     public $token;
     public $receiveManager;
+    public $jobs;
+    public $gearman;
     private $_apps;
     private $_accessToken;
 
@@ -71,7 +73,11 @@ class Wechat extends Component
 
     public function getReceiveManager()
     {
-        return $this->getApp('\iit\wechat\ReceiveManager');
+        if ($this->receiveManager === null) {
+            return $this->getApp('\iit\wechat\ReceiveManager');
+        } else {
+            return $this->getApp($this->receiveManager);
+        }
     }
 
     /**
@@ -285,4 +291,54 @@ class Wechat extends Component
         return false;
     }
 
-} 
+    public function setJobs()
+    {
+        // TODO: Implement setJobs() method.
+    }
+
+    public function getJobs()
+    {
+        return \yii\helpers\ArrayHelper::merge(
+            $this->jobs,
+            $this->getCoreJobs()
+        );
+    }
+
+    public function getCoreJobs()
+    {
+        return [
+            'upload' => '\iit\wechat\UploadGearmanJob'
+        ];
+    }
+
+    /**
+     * @return \iit\gearman\Gearman $gearman
+     */
+
+    public function getGearman()
+    {
+        if (\Yii::$app->get($this->gearman)) {
+            return \Yii::$app->get($this->gearman);
+        } else {
+            return false;
+        }
+    }
+
+    public function getCache($key)
+    {
+        if (\Yii::$app->cache === null) {
+            return false;
+        } else {
+            return \Yii::$app->cache->get('wechat_' . $key);
+        }
+    }
+
+    public function setCache($key, $value, $duration = null)
+    {
+        if (\Yii::$app->cache === null) {
+            return false;
+        } else {
+            return \Yii::$app->cache->set('wechat_' . $key, $value, $duration);
+        }
+    }
+}

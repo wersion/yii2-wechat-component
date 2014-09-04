@@ -8,34 +8,60 @@
 
 namespace iit\wechat;
 
+use yii\helpers\FileHelper;
 
-class MediaManager
+class MediaManager extends BaseWechatManager
 {
-    private $_wechat;
+    const FILE_CACHE_KEY = 'media_';
+    const VIDEO_MAX_FILE_SIZE = '10M';
+    const IMAGE_MAX_FILE_SIZE = '1M';
+    const VOICE_MAX_FILE_SIZE = '2M';
+    const THUMB_MAX_FILE_SIZE = '64K';
+    const MEDIA_UPLOAD_URL = 'http://file.api.weixin.qq.com/cgi-bin/media/upload';
 
-    public function __construct(Wechat $wechat)
+    public function getMediaIdByImage($filePath)
     {
-        $this->_wechat = $wechat;
+        return $this->getMediaIdByFile($filePath, 'image');
     }
 
-    public function uploadImage($filePath)
+
+    public function getMediaIdByVoice($filePath)
     {
-        return $this->uploadMedia($filePath, 'image');
+
     }
 
-    public function uploadVoice($filePath)
+    public function getMediaIdByVideo($filePath)
     {
-        return $this->uploadMedia($filePath, 'voice');
+
     }
 
-    public function uploadVideo($filePath)
+    public function getMediaIdByThumb()
     {
-        return $this->uploadMedia($filePath, 'video');
+
     }
 
-    public function uploadThumb($filePath)
+    public function getMediaIdByFile($filePath, $type)
     {
-        return $this->uploadMedia($filePath, 'thumb');
+        if (file_exists($filePath)) {
+            $hash = sha1_file($filePath);
+            if ($mediaId = $this->getWechat()->getCache(self::FILE_CACHE_KEY . $hash)) {
+                return $mediaId;
+            } else {
+                $fileSize = filesize($filePath);
+                if ($fileSize <= $this->convertFileSize($this->getMaxSize($type)) && in_array(FileHelper::getMimeType($filePath), $this->getFileType($type))) {
+                    $this->getWechat()->getGearman()->doBackground('upload', [
+                        'type' => $type,
+                        'file' => $filePath,
+                        'openid' => $this->getWechat()->getReceiveManager()->getOpenid()
+                    ]);
+                    return true;
+                } else {
+                    return false;
+                }
+            }
+        } else {
+            return false;
+        }
     }
 
     /**
@@ -50,13 +76,60 @@ class MediaManager
      */
     public function uploadMedia($filePath, $mediaType)
     {
-        $result = $this->_wechat->httpPost(self::MEDIA_UPLOAD_URL . '?type=' . $mediaType, [
+        $result = $this->getWechat()->httpPost(self::MEDIA_UPLOAD_URL . '?type=' . $mediaType, [
             'media' => '@' . $filePath
         ]);
-        return isset($result['media_id']) ? $result : false;
+        if (isset($result['media_id'])) {
+            $hash = sha1_file($filePath);
+            $this->getWechat()->setCache(self::FILE_CACHE_KEY . $hash, $result['media_id'], 259000);
+            return $result['media_id'];
+        } else {
+            return false;
+        }
     }
 
-    public function getMedia($mediaId)
+    public function convertFileSize($size)
+    {
+        if (strpos($size, 'M')) {
+            return str_replace('M', '', $size) * 1024 * 1024;
+        } elseif (strpos($size, 'K')) {
+            return str_replace('K', '', $size) * 1024;
+        } else {
+            return 0;
+        }
+    }
+
+
+    public function getMaxSize($type)
+    {
+        switch ($type) {
+            case 'image':
+                return self::IMAGE_MAX_FILE_SIZE;
+                break;
+            case 'video':
+                return self::VIDEO_MAX_FILE_SIZE;
+                break;
+            default:
+                return false;
+        }
+    }
+
+    public function getFileType($type)
+    {
+        switch ($type) {
+            case 'image':
+                return ['image/jpeg'];
+                break;
+            case 'video':
+                return [''];
+                break;
+            default:
+                return false;
+        }
+    }
+
+
+    public function downloadMedia($mediaId)
     {
 
     }

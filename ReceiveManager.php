@@ -21,12 +21,12 @@ class ReceiveManager extends BaseWechatManager
 
     public function getOpenid()
     {
-        return isset($this->getReceiveObj()->FromUserName) ? $this->getReceiveObj()->FromUserName : false;
+        return isset($this->getReceiveObj()->FromUserName) ? (string)$this->getReceiveObj()->FromUserName : false;
     }
 
     public function getWechatid()
     {
-        return isset($this->getReceiveObj()->ToUserName) ? $this->getReceiveObj()->ToUserName : false;
+        return isset($this->getReceiveObj()->ToUserName) ? (string)$this->getReceiveObj()->ToUserName : false;
     }
 
     /**
