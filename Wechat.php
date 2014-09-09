@@ -273,6 +273,16 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
                 }
                 curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
                 break;
+            case 'upload':
+                curl_setopt($curl, CURLOPT_POST, true);
+                if (!is_array($params)) {
+                    throw new InvalidParamException("Post data must be an array.");
+                }
+                //curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
+                curl_setopt($curl, CURLOPT_PUT, true);
+                curl_setopt($curl, CURLOPT_INFILE, $params['file']);
+                curl_setopt($curl, CURLOPT_INFILESIZE, $params['size']);
+                break;
             default:
                 throw new InvalidParamException("Invalid http type '{$type}' called.");
         }
@@ -285,6 +295,7 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
         $content = curl_exec($curl);
         $status = curl_getinfo($curl);
         curl_close($curl);
+        var_dump($content);
         if (isset($status['http_code']) && intval($status['http_code']) == 200) {
             return $content;
         }

@@ -38,4 +38,16 @@ class ServiceManager extends BaseWechatManager
         return $result['errcode'] == 0 ? true : false;
     }
 
+    public function sendVideo($openid, $mediaId)
+    {
+        $result = $this->getWechat()->httpRaw(self::SERVICE_URL, json_encode([
+            'touser' => $openid,
+            'msgtype' => 'video',
+            'video' => [
+                'media_id' => $mediaId
+            ]
+        ], JSON_UNESCAPED_UNICODE));
+        return $result['errcode'] == 0 ? true : false;
+    }
+
 } 

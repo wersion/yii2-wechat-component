@@ -32,7 +32,7 @@ class MediaManager extends BaseWechatManager
 
     public function getMediaIdByVideo($filePath)
     {
-
+        return $this->getMediaIdByFile($filePath, 'video');
     }
 
     public function getMediaIdByThumb()
@@ -76,9 +76,13 @@ class MediaManager extends BaseWechatManager
      */
     public function uploadMedia($filePath, $mediaType)
     {
-        $result = $this->getWechat()->httpPost(self::MEDIA_UPLOAD_URL . '?type=' . $mediaType, [
-            'media' => '@' . $filePath
+        /*$result = $this->getWechat()->httpPost(self::MEDIA_UPLOAD_URL . '?type=' . $mediaType, [
+            'media' => $filePath
         ]);
+        var_dump($result);
+        */
+        var_dump($this->getWechat()->http(self::MEDIA_UPLOAD_URL . '?type=' . $mediaType, $filePath, 'upload', 'url'));
+        exit;
         if (isset($result['media_id'])) {
             $hash = sha1_file($filePath);
             $this->getWechat()->setCache(self::FILE_CACHE_KEY . $hash, $result['media_id'], 259000);
@@ -121,7 +125,7 @@ class MediaManager extends BaseWechatManager
                 return ['image/jpeg'];
                 break;
             case 'video':
-                return [''];
+                return ['video/mp4'];
                 break;
             default:
                 return false;
