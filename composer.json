@@ -1,6 +1,6 @@
 {
     "name": "iit/yii2-wechat-component",
-    "description": "基于Yii2开发的微信API组件",
+    "description": "Yii2微信API组件",
     "type": "yii2-extension",
     "version": "1.0.0",
     "license": "MIT",
