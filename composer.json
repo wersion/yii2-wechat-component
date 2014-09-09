@@ -12,7 +12,6 @@
     ],
     "require": {
         "yiisoft/yii2": "*",
-        "iit/yii2-gearman-component": "*"
     },
     "autoload": {
         "psr-4": {
