@@ -14,12 +14,5 @@ class Article
     public $description;
     public $picUrl;
     public $url;
-
-    function __construct($title = '', $description = '', $picUrl = '', $url = '')
-    {
-        $this->title = $title;
-        $this->description = $description;
-        $this->picUrl = $picUrl;
-        $this->url = $url;
-    }
+    
 } 

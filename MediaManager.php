@@ -18,6 +18,21 @@ class MediaManager extends BaseWechatManager
     const VOICE_MAX_FILE_SIZE = '2M';
     const THUMB_MAX_FILE_SIZE = '64K';
     const MEDIA_UPLOAD_URL = 'http://file.api.weixin.qq.com/cgi-bin/media/upload';
+    private $_fileCacheKey;
+
+    public function setCacheKey($filePath)
+    {
+        if (file_exists($filePath)) {
+            $this->_fileCacheKey = self::FILE_CACHE_KEY . sha1_file($filePath);
+            return true;
+        }
+        return false;
+    }
+
+    public function getCacheKey()
+    {
+        return $this->_fileCacheKey;
+    }
 
     public function getMediaIdByImage($filePath)
     {
@@ -27,7 +42,7 @@ class MediaManager extends BaseWechatManager
 
     public function getMediaIdByVoice($filePath)
     {
-
+        return $this->getMediaIdByFile($filePath, 'voice');
     }
 
     public function getMediaIdByVideo($filePath)

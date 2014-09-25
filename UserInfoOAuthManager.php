@@ -9,7 +9,7 @@
 namespace iit\wechat;
 
 
-class UserInfoOAuth extends BaseOAuth
+class UserInfoOAuthManager extends BaseOAuthManager
 {
 
     /**

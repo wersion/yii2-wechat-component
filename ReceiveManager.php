@@ -14,15 +14,41 @@ class ReceiveManager extends BaseWechatManager
 
     private $_receiveObj;
 
+    /**
+     * @param $signature
+     * @param $timestamp
+     * @param $nonce
+     * @return bool
+     */
+
+    public function signature($signature, $timestamp, $nonce)
+    {
+        $tmpArr = [$this->token, $timestamp, $nonce];
+        sort($tmpArr, SORT_STRING);
+        return sha1(implode($tmpArr)) == $signature ? true : false;
+    }
+
+    /**
+     * @return mixed
+     */
+
     public function getReceiveObj()
     {
         return $this->_receiveObj;
     }
 
+    /**
+     * @return bool|string
+     */
+
     public function getOpenid()
     {
         return isset($this->getReceiveObj()->FromUserName) ? (string)$this->getReceiveObj()->FromUserName : false;
     }
+
+    /**
+     * @return bool|string
+     */
 
     public function getWechatid()
     {
@@ -39,6 +65,10 @@ class ReceiveManager extends BaseWechatManager
         $this->_receiveObj = $receiveObj;
         return $this;
     }
+
+    /**
+     * @return string
+     */
 
     public function action()
     {

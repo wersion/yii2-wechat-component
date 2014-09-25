@@ -104,7 +104,7 @@ class ResponseManager extends BaseWechatManager
      * @return string
      */
 
-    public function sendMusic($mediaId, $title = '', $description = '', $url = '', $hqUrl = '')
+    public function sendMusic($musicUrl, $hqMusicUrl, $thumbMediaId, $title = '', $description = '')
     {
         $sendArr = [
             'ToUserName' => $this->getWechat()->getReceiveManager()->getOpenid(),
@@ -114,9 +114,9 @@ class ResponseManager extends BaseWechatManager
             'Music' => [
                 'Title' => $title,
                 'Description' => $description,
-                'MusicURL' => $url,
-                'HQMusicUrl' => $hqUrl,
-                'ThumbMediaId' => $mediaId
+                'MusicURL' => $musicUrl,
+                'HQMusicUrl' => $hqMusicUrl,
+                'ThumbMediaId' => $thumbMediaId
             ]
 
         ];
@@ -129,9 +129,9 @@ class ResponseManager extends BaseWechatManager
      * @return string
      */
 
-    public function sendNews(News $news)
+    public function sendNews(\iit\wechat\News $news)
     {
-        if ($news->countNews() != 0) {
+        if ($news->countArticle() != 0) {
             $articles = [];
             foreach ($news->getArticles() as $article) {
                 $articles[] = [
@@ -148,13 +148,23 @@ class ResponseManager extends BaseWechatManager
                 'FromUserName' => $this->getWechat()->getReceiveManager()->getWechatid(),
                 'CreateTime' => time(),
                 'MsgType' => 'news',
-                'ArticleCount' => $news->countNews(),
+                'ArticleCount' => $news->countArticle(),
                 'Articles' => $articles
             ];
             return $this->send($sendArr);
         } else {
             return '';
         }
+    }
+
+    public function turnToService()
+    {
+        return $this->send([
+            'ToUserName' => $this->getWechat()->getReceiveManager()->getOpenid(),
+            'FromUserName' => $this->getWechat()->getReceiveManager()->getWechatid(),
+            'CreateTime' => time(),
+            'MsgType' => 'transfer_customer_service'
+        ]);
     }
 
     /**

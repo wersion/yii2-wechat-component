@@ -25,7 +25,7 @@ class WechatReveiveAction extends Action
     {
         if (is_object($wechat)) {
             $this->_wechat = $wechat;
-        } elseif (is_string($wechat) && \Yii::$app->get($wechat)) {
+        } elseif (is_string($wechat) && \Yii::$app->has($wechat)) {
             $this->_wechat = \Yii::$app->get($wechat);
         } else {
             throw new InvalidParamException('Not Found Wechat Component.');
@@ -46,7 +46,7 @@ class WechatReveiveAction extends Action
         if ($this->getWechat() === null) {
             throw new InvalidParamException('Not Found The Wechat Component');
         } else {
-            if ($this->getWechat()->signature($signature, $timestamp, $nonce)) {
+            if ($this->getWechat()->getReceiveManager()->signature($signature, $timestamp, $nonce)) {
                 if ($echostr === null) {
                     $receive = file_get_contents('php://input');
                     if (empty($receive)) {

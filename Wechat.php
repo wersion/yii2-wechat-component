@@ -12,19 +12,29 @@ use Yii;
 use yii\base\Component;
 use yii\base\InvalidParamException;
 
-class Wechat extends Component implements \iit\gearman\JobsInterface
+/**
+ * Class Wechat
+ * @package iit\wechat
+ *
+ * @property \iit\wechat\UserManager $userManager The User Manager
+ *
+ */
+class Wechat extends Component
 {
 
     const GET_ACCESS_TOKEN_URL = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential';
 
-    const MEDIA_UPLOAD_URL = 'http://file.api.weixin.qq.com/cgi-bin/media/upload';
-
     public $appid;
     public $appsecret;
     public $token;
-    public $receiveManager;
-    public $jobs;
-    public $gearman;
+    public $receiveManager = '\iit\wechat\ReceiveManager';
+    public $baseOAuthManager = '\iit\wechat\BaseOAuthManager';
+    public $userInfoOAuthManager = '\iit\wechat\UserInfoOAuthManager';
+    public $userManager = '\iit\wechat\UserManager';
+    public $mediaManager = '\iit\wechat\MediaManager';
+    public $menuManager = '\iit\wechat\MenuManager';
+    public $responseManager = '\iit\wechat\ResponseManager';
+    public $serviceManager = '\iit\wechat\ServiceManager';
     private $_apps;
     private $_accessToken;
 
@@ -55,10 +65,10 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
             $cacheToken = false;
             $forceUpdate === false && $cacheToken = \Yii::$app->cache->get($cacheKey);
             if ($cacheToken == false || $forceUpdate == true) {
-                $result = $this->httpGet(self::GET_ACCESS_TOKEN_URL, ['appid' => $this->appid, 'secret' => $this->appsecret], false, false);
+                $result = self::httpGet(self::GET_ACCESS_TOKEN_URL, ['appid' => $this->appid, 'secret' => $this->appsecret], false, false);
                 if (!isset($result['errcode'])) {
                     $this->_accessToken = $result['access_token'];
-                    \Yii::$app->cache->set($cacheKey, $this->_accessToken);
+                    self::setCache($cacheKey, $this->_accessToken);
                 }
             } else {
                 $this->_accessToken = $cacheToken;
@@ -73,25 +83,7 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
 
     public function getReceiveManager()
     {
-        if ($this->receiveManager === null) {
-            return $this->getApp('\iit\wechat\ReceiveManager');
-        } else {
-            return $this->getApp($this->receiveManager);
-        }
-    }
-
-    /**
-     * @param $signature
-     * @param $timestamp
-     * @param $nonce
-     * @return bool
-     */
-
-    public function signature($signature, $timestamp, $nonce)
-    {
-        $tmpArr = [$this->token, $timestamp, $nonce];
-        sort($tmpArr, SORT_STRING);
-        return sha1(implode($tmpArr)) == $signature ? true : false;
+        return $this->getApp($this->receiveManager);
     }
 
     /**
@@ -100,7 +92,7 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
 
     public function getBaseOAuth()
     {
-        return $this->getApp('\iit\wechat\BaseOAuth');
+        return $this->getApp($this->baseOAuthManager);
     }
 
     /**
@@ -109,7 +101,7 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
 
     public function getUserInfoOAuth()
     {
-        return $this->getApp('\iit\wechat\UserInfoOAuth');
+        return $this->getApp($this->userInfoOAuthManager);
     }
 
     /**
@@ -118,7 +110,7 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
 
     public function getUserManager()
     {
-        return $this->getApp('\iit\wechat\UserManager');
+        return $this->getApp($this->userManager);
     }
 
     /**
@@ -127,7 +119,7 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
 
     public function getMediaManager()
     {
-        return $this->getApp('\iit\wechat\MediaManager');
+        return $this->getApp($this->mediaManager);
     }
 
     /**
@@ -136,7 +128,7 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
 
     public function getMenuManager()
     {
-        return $this->getApp('\iit\wechat\MenuManager');
+        return $this->getApp($this->menuManager);
     }
 
     /**
@@ -145,7 +137,7 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
 
     public function getResponseManager()
     {
-        return $this->getApp('\iit\wechat\ResponseManager');
+        return $this->getApp($this->responseManager);
     }
 
     /**
@@ -154,7 +146,7 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
 
     public function getServiceManager()
     {
-        return $this->getApp('\iit\wechat\ServiceManager');
+        return $this->getApp($this->serviceManager);
     }
 
     /**
@@ -179,9 +171,9 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
      * @param string $token
      * @return bool|mixed
      */
-    public function httpGet($url, $params = null, $token = 'url', $etry = true)
+    public static function httpGet($url, $params = null, $token = 'url', $etry = true)
     {
-        return $this->parseHttpResult($url, $params, 'get', $token, $etry);
+        return self::parseHttpResult($url, $params, 'get', $token, $etry);
     }
 
     /**
@@ -190,9 +182,9 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
      * @param string $token
      * @return bool|mixed
      */
-    public function httpPost($url, $params = null, $token = 'url', $etry = true)
+    public static function httpPost($url, $params = null, $token = 'url', $etry = true)
     {
-        return $this->parseHttpResult($url, $params, 'post', $token, $etry);
+        return self::parseHttpResult($url, $params, 'post', $token, $etry);
     }
 
     /**
@@ -203,9 +195,9 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
      * @return bool|mixed
      */
 
-    public function httpRaw($url, $params = null, $token = 'url', $etry = true)
+    public static function httpRaw($url, $params = null, $token = 'url', $etry = true)
     {
-        return $this->parseHttpResult($url, $params, 'raw', $token, $etry);
+        return self::parseHttpResult($url, $params, 'raw', $token, $etry);
     }
 
     /**
@@ -216,17 +208,17 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
      * @param bool $etry
      * @return bool|mixed
      */
-    public function parseHttpResult($url, $params, $method, $token = false, $etry = true)
+    public static function parseHttpResult($url, $params, $method, $token = false, $etry = true)
     {
-        $return = $this->http($url, $params, $method, $token);
-        $return = json_decode($return, true) ? : $return;
+        $return = self::http($url, $params, $method, $token);
+        $return = json_decode($return, true) ?: $return;
         if (isset($return['errcode']) && $etry === true && $token != false) {
             switch ($return['errcode']) {
                 case 40001:
-                    $this->getAccessToken(true) && $return = $this->parseHttpResult($url, $params, $method, $token, false);
+                    self::getAccessToken(true) && $return = self::parseHttpResult($url, $params, $method, $token, false);
                     break;
                 case 42001:
-                    $this->getAccessToken(true) && $return = $this->parseHttpResult($url, $params, $method, $token, false);
+                    self::getAccessToken(true) && $return = self::parseHttpResult($url, $params, $method, $token, false);
                     break;
             }
         }
@@ -242,13 +234,13 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
      * @return bool|mixed
      * @throws \yii\base\InvalidParamException
      */
-    public function http($url, $params = null, $type = 'get', $token = false)
+    public static function http($url, $params = null, $type = 'get', $token = false)
     {
         if ($token) {
             if ($token == 'url') {
-                $url .= (stripos($url, '?') === false ? '?' : '&') . "access_token=" . $this->getAccessToken();
+                $url .= (stripos($url, '?') === false ? '?' : '&') . "access_token=" . self::getAccessToken();
             } elseif ($token == 'params') {
-                $params['access_token'] = $this->getAccessToken();
+                $params['access_token'] = self::getAccessToken();
             } else {
                 throw new InvalidParamException("Invalid token type '{$token}' called.");
             }
@@ -273,16 +265,6 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
                 }
                 curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
                 break;
-            case 'upload':
-                curl_setopt($curl, CURLOPT_POST, true);
-                if (!is_array($params)) {
-                    throw new InvalidParamException("Post data must be an array.");
-                }
-                //curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
-                curl_setopt($curl, CURLOPT_PUT, true);
-                curl_setopt($curl, CURLOPT_INFILE, $params['file']);
-                curl_setopt($curl, CURLOPT_INFILESIZE, $params['size']);
-                break;
             default:
                 throw new InvalidParamException("Invalid http type '{$type}' called.");
         }
@@ -302,40 +284,7 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
         return false;
     }
 
-    public function setJobs()
-    {
-        // TODO: Implement setJobs() method.
-    }
-
-    public function getJobs()
-    {
-        return \yii\helpers\ArrayHelper::merge(
-            $this->jobs,
-            $this->getCoreJobs()
-        );
-    }
-
-    public function getCoreJobs()
-    {
-        return [
-            'upload' => '\iit\wechat\UploadGearmanJob'
-        ];
-    }
-
-    /**
-     * @return \iit\gearman\Gearman $gearman
-     */
-
-    public function getGearman()
-    {
-        if (\Yii::$app->get($this->gearman)) {
-            return \Yii::$app->get($this->gearman);
-        } else {
-            return false;
-        }
-    }
-
-    public function getCache($key)
+    public static function getCache($key)
     {
         if (\Yii::$app->cache === null) {
             return false;
@@ -344,7 +293,7 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
         }
     }
 
-    public function setCache($key, $value, $duration = null)
+    public static function setCache($key, $value, $duration = null)
     {
         if (\Yii::$app->cache === null) {
             return false;
@@ -352,4 +301,10 @@ class Wechat extends Component implements \iit\gearman\JobsInterface
             return \Yii::$app->cache->set('wechat_' . $key, $value, $duration);
         }
     }
+
+    public static function jsonEncode($data)
+    {
+        return json_encode($data, JSON_UNESCAPED_UNICODE);
+    }
+
 }

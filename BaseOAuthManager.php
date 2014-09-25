@@ -9,7 +9,7 @@
 namespace iit\wechat;
 
 
-class BaseOAuth extends BaseWechatManager
+class BaseOAuthManager extends BaseWechatManager
 {
     /**
      * OAuth2.0鉴权地址
@@ -202,7 +202,7 @@ class BaseOAuth extends BaseWechatManager
 
     public function getCode()
     {
-        return \Yii::$app->request->get('code') ? : false;
+        return \Yii::$app->request->get('code') ?: false;
     }
 
     /**
