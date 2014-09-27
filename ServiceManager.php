@@ -109,7 +109,7 @@ class ServiceManager extends BaseWechatManager
 
     public function getServiceRecord($beginTime, $endTime, $pageIndex = 1, $pageSize = 1000, $openid = null)
     {
-        
+
     }
 
 } 

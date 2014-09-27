@@ -277,7 +277,6 @@ class Wechat extends Component
         $content = curl_exec($curl);
         $status = curl_getinfo($curl);
         curl_close($curl);
-        var_dump($content);
         if (isset($status['http_code']) && intval($status['http_code']) == 200) {
             return $content;
         }
