@@ -8,7 +8,7 @@
 
 namespace iit\wechat;
 
-class GroupArticle
+class MassArticle
 {
     const SHOW_COVER_PIC = 1;
     const HIDE_COVER_PIC = 0;

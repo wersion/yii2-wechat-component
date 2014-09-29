@@ -11,7 +11,7 @@ namespace iit\wechat;
 
 use yii\base\InvalidParamException;
 
-class WechatMenu
+class Menu
 {
     const TOP_MENU_LIMIT = 3;
     const SUB_MENU_LIMIT = 5;
@@ -56,7 +56,7 @@ class WechatMenu
 
     public function get($key)
     {
-        return isset($this->_menu[$key]) ? : false;
+        return isset($this->_menu[$key]) ?: false;
     }
 
     public function getAll()

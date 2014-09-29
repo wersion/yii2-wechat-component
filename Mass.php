@@ -9,13 +9,103 @@
 namespace iit\wechat;
 
 
-class GroupSend extends BaseWechatManager
+class Mass
 {
     const UPLOAD_NEWS_URL = 'https://api.weixin.qq.com/cgi-bin/media/uploadnews';
     const UPLOAD_VIDEO_URL = 'https://file.api.weixin.qq.com/cgi-bin/media/uploadvideo';
     const GROUP_SEND_URL = 'https://api.weixin.qq.com/cgi-bin/message/mass/sendall';
     const OPENID_SEND_URL = 'https://api.weixin.qq.com/cgi-bin/message/mass/send';
     const DELETE_URL = 'https://api.weixin.qq.com/cgi-bin/message/mass/delete';
+
+    public function sendTextByGroupId($groupid, $text)
+    {
+        $result = Wechat::httpRaw(self::GROUP_SEND_URL, json_encode([
+            'filter' => [
+                'group_id' => $groupid
+            ],
+            'text' => [
+                'content' => $text
+            ],
+            'msgtype' => 'text'
+        ]));
+        return $result['errcode'] == 0 ? $result['msg_id'] : false;
+    }
+
+    public function sendImageByGroupId($groupid, $mediaId)
+    {
+        $result = Wechat::httpRaw(self::GROUP_SEND_URL, Wechat::jsonEncode([
+            'filter' => [
+                'group_id' => $groupid
+            ],
+            'image' => [
+                'media_id' => $mediaId
+            ],
+            'msgtype' => 'image'
+        ]));
+        return $result['errcode'] == 0 ? $result['msg_id'] : false;
+    }
+
+    public function sendVideoByGroupId($groupid, $mediaId, $title = '', $description = '')
+    {
+        $mediaId = $this->uploadVideo($mediaId, $title, $description);
+        if ($mediaId !== false) {
+            $result = Wechat::httpRaw(self::GROUP_SEND_URL, Wechat::jsonEncode([
+                'filter' => [
+                    'group_id' => $groupid
+                ],
+                'mpvideo' => [
+                    'media_id' => $mediaId
+                ],
+                'msgtype' => 'mpvideo'
+            ]));
+            return $result['errcode'] == 0 ? $result['msg_id'] : false;
+        } else {
+            return false;
+        }
+    }
+
+    public function uploadVideo($mediaId, $title = '', $description = '')
+    {
+        $result = Wechat::httpRaw(self::UPLOAD_VIDEO_URL, Wechat::jsonEncode([
+            'media_id' => $mediaId,
+            'title' => $title,
+            'description' => $description
+        ]));
+        return isset($result['media_id']) ? $result['media_id'] : false;
+    }
+
+    public function sendVoiceByGroupId($groupid, $mediaId)
+    {
+        $result = Wechat::httpRaw(self::GROUP_SEND_URL, Wechat::jsonEncode([
+            'filter' => [
+                'group_id' => $groupid
+            ],
+            'voice' => [
+                'media_id' => $mediaId
+            ],
+            'msgtype' => 'voice'
+        ]));
+        return $result['errcode'] == 0 ? $result['msg_id'] : false;
+    }
+
+    public function sendNewsByGroupId($groupid, News $news)
+    {
+        $mediaId = $this->uploadNews($news);
+        if ($mediaId !== false) {
+            $result = Wechat::httpRaw(self::GROUP_SEND_URL, Wechat::jsonEncode([
+                'filter' => [
+                    'group_id' => $groupid
+                ],
+                'mpnews' => [
+                    'media_id' => $mediaId
+                ],
+                'msgtype' => 'mpnews'
+            ]));
+            return $result['errcode'] == 0 ? $result['msg_id'] : false;
+        } else {
+            return false;
+        }
+    }
 
     public function uploadNews(\iit\wechat\News $news)
     {
@@ -35,96 +125,6 @@ class GroupSend extends BaseWechatManager
                 'articles' => $articles
             ]));
             return isset($result['media_id']) ? $result['media_id'] : false;
-        } else {
-            return false;
-        }
-    }
-
-    public function uploadVideo($mediaId, $title = '', $description = '')
-    {
-        $result = $this->getWechat()->httpRaw(self::UPLOAD_VIDEO_URL, $this->getWechat()->jsonEncode([
-            'media_id' => $mediaId,
-            'title' => $title,
-            'description' => $description
-        ]));
-        return isset($result['media_id']) ? $result['media_id'] : false;
-    }
-
-    public function sendTextByGroupId($groupid, $text)
-    {
-        $result = $this->getWechat()->httpRaw(self::GROUP_SEND_URL, json_encode([
-            'filter' => [
-                'group_id' => $groupid
-            ],
-            'text' => [
-                'content' => $text
-            ],
-            'msgtype' => 'text'
-        ]));
-        return $result['errcode'] == 0 ? $result['msg_id'] : false;
-    }
-
-    public function sendImageByGroupId($groupid, $mediaId)
-    {
-        $result = $this->getWechat()->httpRaw(self::GROUP_SEND_URL, $this->getWechat()->jsonEncode([
-            'filter' => [
-                'group_id' => $groupid
-            ],
-            'image' => [
-                'media_id' => $mediaId
-            ],
-            'msgtype' => 'image'
-        ]));
-        return $result['errcode'] == 0 ? $result['msg_id'] : false;
-    }
-
-    public function sendVideoByGroupId($groupid, $mediaId, $title = '', $description = '')
-    {
-        $mediaId = $this->uploadVideo($mediaId, $title, $description);
-        if ($mediaId !== false) {
-            $result = $this->getWechat()->httpRaw(self::GROUP_SEND_URL, $this->getWechat()->jsonEncode([
-                'filter' => [
-                    'group_id' => $groupid
-                ],
-                'mpvideo' => [
-                    'media_id' => $mediaId
-                ],
-                'msgtype' => 'mpvideo'
-            ]));
-            return $result['errcode'] == 0 ? $result['msg_id'] : false;
-        } else {
-            return false;
-        }
-    }
-
-    public function sendVoiceByGroupId($groupid, $mediaId)
-    {
-        $result = $this->getWechat()->httpRaw(self::GROUP_SEND_URL, $this->getWechat()->jsonEncode([
-            'filter' => [
-                'group_id' => $groupid
-            ],
-            'voice' => [
-                'media_id' => $mediaId
-            ],
-            'msgtype' => 'voice'
-        ]));
-        return $result['errcode'] == 0 ? $result['msg_id'] : false;
-    }
-
-    public function sendNewsByGroupId($groupid, News $news)
-    {
-        $mediaId = $this->uploadNews($news);
-        if ($mediaId !== false) {
-            $result = $this->getWechat()->httpRaw(self::GROUP_SEND_URL, $this->getWechat()->jsonEncode([
-                'filter' => [
-                    'group_id' => $groupid
-                ],
-                'mpnews' => [
-                    'media_id' => $mediaId
-                ],
-                'msgtype' => 'mpnews'
-            ]));
-            return $result['errcode'] == 0 ? $result['msg_id'] : false;
         } else {
             return false;
         }

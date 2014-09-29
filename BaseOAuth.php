@@ -9,7 +9,7 @@
 namespace iit\wechat;
 
 
-class BaseOAuthManager extends BaseWechatManager
+class BaseOAuth
 {
     /**
      * OAuth2.0鉴权地址
@@ -48,6 +48,43 @@ class BaseOAuthManager extends BaseWechatManager
     private $_openid;
     private $_accessToken;
     private $_refreshToken;
+
+    /**
+     * @return mixed|null
+     */
+
+    public function getAccessToken()
+    {
+        if ($this->_accessToken === null) {
+            if ($cacheAccessToken = $this->getCache($this->getOpenid() . self::ACCESS_TOKEN_CACHE)) {
+                $this->_accessToken = $cacheAccessToken;
+            } else {
+                if ($result = $this->httpAccessTokenByRefreshToken()) {
+                    $this->setAccessToken($result['access_token'], $result['expires_in']);
+                } else {
+                    if ($result = $this->httpAccessTokenByCode()) {
+                        $this->setAccessToken($result['access_token'], $result['expires_in']);
+                    } else {
+                        return false;
+                    }
+                }
+            }
+        }
+        return $this->_accessToken;
+    }
+
+    /**
+     * 设置访问token的各种缓存
+     * @param $token
+     * @param $duration
+     * @return bool
+     */
+
+    public function setAccessToken($token, $duration)
+    {
+        $this->_accessToken = $token;
+        return $this->setCache($this->getOpenid() . self::ACCESS_TOKEN_CACHE, $token, $duration);
+    }
 
     /**
      * 获取openid，优先从缓存里读取
@@ -106,6 +143,16 @@ class BaseOAuthManager extends BaseWechatManager
     }
 
     /**
+     * 获取从鉴权地址跳转回来时带上的验证码
+     * @return bool
+     */
+
+    public function getCode()
+    {
+        return \Yii::$app->request->get('code') ?: false;
+    }
+
+    /**
      * 通过刷新token从微信服务器获取访问token
      * @return bool
      */
@@ -159,53 +206,6 @@ class BaseOAuthManager extends BaseWechatManager
     }
 
     /**
-     * @return mixed|null
-     */
-
-    public function getAccessToken()
-    {
-        if ($this->_accessToken === null) {
-            if ($cacheAccessToken = $this->getCache($this->getOpenid() . self::ACCESS_TOKEN_CACHE)) {
-                $this->_accessToken = $cacheAccessToken;
-            } else {
-                if ($result = $this->httpAccessTokenByRefreshToken()) {
-                    $this->setAccessToken($result['access_token'], $result['expires_in']);
-                } else {
-                    if ($result = $this->httpAccessTokenByCode()) {
-                        $this->setAccessToken($result['access_token'], $result['expires_in']);
-                    } else {
-                        return false;
-                    }
-                }
-            }
-        }
-        return $this->_accessToken;
-    }
-
-    /**
-     * 设置访问token的各种缓存
-     * @param $token
-     * @param $duration
-     * @return bool
-     */
-
-    public function setAccessToken($token, $duration)
-    {
-        $this->_accessToken = $token;
-        return $this->setCache($this->getOpenid() . self::ACCESS_TOKEN_CACHE, $token, $duration);
-    }
-
-    /**
-     * 获取从鉴权地址跳转回来时带上的验证码
-     * @return bool
-     */
-
-    public function getCode()
-    {
-        return \Yii::$app->request->get('code') ?: false;
-    }
-
-    /**
      * 组装OAuth2.0鉴权地址
      * @param null $state
      * @return string
@@ -237,23 +237,6 @@ class BaseOAuthManager extends BaseWechatManager
             return \Yii::$app->cache->set($key, $value, $duration);
         } else {
             return false;
-        }
-    }
-
-    /**
-     * 从应用缓存组件里读取缓存数据
-     * 智能判断应用缓存组件是否开启
-     * 如果没有开启直接返回失败
-     * @param $key
-     * @return mixed
-     */
-
-    public function getCache($key)
-    {
-        if (\Yii::$app->cache) {
-            return \Yii::$app->cache->get($key);
-        } else {
-            false;
         }
     }
 

@@ -8,8 +8,6 @@
 
 namespace iit\wechat;
 
-use Yii;
-use yii\base\Component;
 use yii\base\InvalidParamException;
 
 /**
@@ -19,149 +17,32 @@ use yii\base\InvalidParamException;
  * @property \iit\wechat\UserManager $userManager The User Manager
  *
  */
-class Wechat extends Component
+class Wechat
 {
 
     const GET_ACCESS_TOKEN_URL = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential';
-
-    public $appid;
-    public $appsecret;
-    public $token;
-    public $receiveManager = '\iit\wechat\ReceiveManager';
-    public $baseOAuthManager = '\iit\wechat\BaseOAuthManager';
-    public $userInfoOAuthManager = '\iit\wechat\UserInfoOAuthManager';
-    public $userManager = '\iit\wechat\UserManager';
-    public $mediaManager = '\iit\wechat\MediaManager';
-    public $menuManager = '\iit\wechat\MenuManager';
-    public $responseManager = '\iit\wechat\ResponseManager';
-    public $serviceManager = '\iit\wechat\ServiceManager';
-    private $_apps;
-    private $_accessToken;
+    /**
+     * @var \iit\wechat\Component The Wechat Component
+     */
+    public static $component;
 
     /**
-     * @throws \yii\base\InvalidParamException
+     * @var String The Cache AccessToken
      */
+    private static $_accessToken;
 
-    public function init()
-    {
-        parent::init();
-        if ($this->appid === null)
-            throw new InvalidParamException('The appid has not configure.');
-        if ($this->appsecret === null)
-            throw new InvalidParamException('The appsecret has not configure.');
-        if ($this->token === null)
-            throw new InvalidParamException('The token has not configure.');
-    }
 
     /**
-     * @param bool $forceUpdate
-     * @return bool|mixed|null
+     * @param $url
+     * @param null $params
+     * @param string $token
+     * @param bool $etry
+     * @return bool|mixed
      */
 
-    public function getAccessToken($forceUpdate = false)
+    public static function httpRaw($url, $params = null, $token = 'url', $etry = true)
     {
-        if ($this->_accessToken === null || $forceUpdate === true) {
-            $cacheKey = sha1($this->appid);
-            $cacheToken = false;
-            $forceUpdate === false && $cacheToken = \Yii::$app->cache->get($cacheKey);
-            if ($cacheToken == false || $forceUpdate == true) {
-                $result = self::httpGet(self::GET_ACCESS_TOKEN_URL, ['appid' => $this->appid, 'secret' => $this->appsecret], false, false);
-                if (!isset($result['errcode'])) {
-                    $this->_accessToken = $result['access_token'];
-                    self::setCache($cacheKey, $this->_accessToken);
-                }
-            } else {
-                $this->_accessToken = $cacheToken;
-            }
-        }
-        return ($this->_accessToken === null) ? false : $this->_accessToken;
-    }
-
-    /**
-     * @return \iit\wechat\ReceiveManager $receiveManager
-     */
-
-    public function getReceiveManager()
-    {
-        return $this->getApp($this->receiveManager);
-    }
-
-    /**
-     * @return \iit\wechat\BaseOAuth $baseOAuth
-     */
-
-    public function getBaseOAuth()
-    {
-        return $this->getApp($this->baseOAuthManager);
-    }
-
-    /**
-     * @return \iit\wechat\UserInfoOAuth userInfoOAuth
-     */
-
-    public function getUserInfoOAuth()
-    {
-        return $this->getApp($this->userInfoOAuthManager);
-    }
-
-    /**
-     * @return \iit\wechat\UserManager $userManager
-     */
-
-    public function getUserManager()
-    {
-        return $this->getApp($this->userManager);
-    }
-
-    /**
-     * @return \iit\wechat\MediaManager mediaManager
-     */
-
-    public function getMediaManager()
-    {
-        return $this->getApp($this->mediaManager);
-    }
-
-    /**
-     * @return \iit\wechat\MenuManager $menuManager
-     */
-
-    public function getMenuManager()
-    {
-        return $this->getApp($this->menuManager);
-    }
-
-    /**
-     * @return \iit\wechat\ResponseManager $responseManager
-     */
-
-    public function getResponseManager()
-    {
-        return $this->getApp($this->responseManager);
-    }
-
-    /**
-     * @return \iit\wechat\ServiceManager $serviceManager
-     */
-
-    public function getServiceManager()
-    {
-        return $this->getApp($this->serviceManager);
-    }
-
-    /**
-     *
-     * @param $appName
-     * @return mixed
-     */
-
-    public function getApp($appName)
-    {
-        $cacheKey = sha1($appName);
-        if (!isset($this->_apps[$cacheKey])) {
-            $this->_apps[$cacheKey] = new $appName($this);
-        }
-        return $this->_apps[$cacheKey];
+        return self::parseHttpResult($url, $params, 'raw', $token, $etry);
     }
 
     /**
@@ -189,19 +70,6 @@ class Wechat extends Component
 
     /**
      * @param $url
-     * @param null $params
-     * @param string $token
-     * @param bool $etry
-     * @return bool|mixed
-     */
-
-    public static function httpRaw($url, $params = null, $token = 'url', $etry = true)
-    {
-        return self::parseHttpResult($url, $params, 'raw', $token, $etry);
-    }
-
-    /**
-     * @param $url
      * @param $params
      * @param $method
      * @param bool $token
@@ -211,7 +79,7 @@ class Wechat extends Component
     public static function parseHttpResult($url, $params, $method, $token = false, $etry = true)
     {
         $return = self::http($url, $params, $method, $token);
-        $return = json_decode($return, true) ?: $return;
+        $return = self::jsonDecode($return) ?: $return;
         if (isset($return['errcode']) && $etry === true && $token != false) {
             switch ($return['errcode']) {
                 case 40001:
@@ -227,8 +95,8 @@ class Wechat extends Component
 
     /**
      * Http协议调用微信接口方法
-     * @param $url api地址
-     * @param $params 参数
+     * @param String $url
+     * @param Array|String $params
      * @param string $type 提交类型
      * @param string $token 添加AccessToken类型
      * @return bool|mixed
@@ -283,14 +151,37 @@ class Wechat extends Component
         return false;
     }
 
-    public static function getCache($key)
+    /**
+     * @param bool $forceUpdate
+     * @return bool|mixed|null
+     */
+
+    public static function getAccessToken($forceUpdate = false)
     {
-        if (\Yii::$app->cache === null) {
-            return false;
-        } else {
-            return \Yii::$app->cache->get('wechat_' . $key);
+        if (self::$_accessToken === null || $forceUpdate === true) {
+            $cacheKey = sha1(self::$component->appid);
+            $cacheToken = false;
+            $forceUpdate === false && $cacheToken = self::getCache($cacheKey);
+            if ($cacheToken == false || $forceUpdate == true) {
+                $result = self::httpGet(self::GET_ACCESS_TOKEN_URL, ['appid' => self::$component->appid, 'secret' => self::$component->appsecret], false, false);
+                if (!isset($result['errcode'])) {
+                    self::$_accessToken = $result['access_token'];
+                    self::setCache($cacheKey, self::$_accessToken, $result['expires_in']);
+                }
+            } else {
+                self::$_accessToken = $cacheToken;
+            }
         }
+        return (self::$_accessToken === null) ? false : self::$_accessToken;
     }
+
+
+    /**
+     * @param $key
+     * @param $value
+     * @param null $duration
+     * @return bool
+     */
 
     public static function setCache($key, $value, $duration = null)
     {
@@ -301,9 +192,38 @@ class Wechat extends Component
         }
     }
 
+    /**
+     * @param $key
+     * @return bool|mixed
+     */
+
+    public static function getCache($key)
+    {
+        if (\Yii::$app->cache === null) {
+            return false;
+        } else {
+            return \Yii::$app->cache->get('wechat_' . $key);
+        }
+    }
+
+    /**
+     * @param $data
+     * @return string
+     */
+
     public static function jsonEncode($data)
     {
         return json_encode($data, JSON_UNESCAPED_UNICODE);
+    }
+
+    /**
+     * @param $json
+     * @return mixed
+     */
+
+    public static function jsonDecode($json)
+    {
+        return json_decode($json, true);
     }
 
 }

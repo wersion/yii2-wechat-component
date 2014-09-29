@@ -9,7 +9,7 @@
 namespace iit\wechat;
 
 
-class MenuManager
+class Menu
 {
     const DELETE_URL = 'https://api.weixin.qq.com/cgi-bin/menu/delete';
     const SELECT_URL = 'https://api.weixin.qq.com/cgi-bin/menu/get';
