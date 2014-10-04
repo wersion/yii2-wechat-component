@@ -13,9 +13,13 @@ use yii\base\InvalidParamException;
 use yii\helpers\ArrayHelper;
 
 /**
- * Class Component
- * @package iit\wechat
+ *
  * @property \iit\wechat\Media $media
+ * @property \iit\wechat\Receive $receive
+ * @property \iit\wechat\Response $response
+ * @property \iit\wechat\Menu $menu
+ * @property \iit\wechat\Service $service
+ * @property \iit\wechat\User $user
  *
  */
 class Component extends \yii\base\Component

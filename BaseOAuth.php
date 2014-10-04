@@ -56,7 +56,7 @@ class BaseOAuth
     public function getAccessToken()
     {
         if ($this->_accessToken === null) {
-            if ($cacheAccessToken = $this->getCache($this->getOpenid() . self::ACCESS_TOKEN_CACHE)) {
+            if ($cacheAccessToken = Wechat::getCache($this->getOpenid() . self::ACCESS_TOKEN_CACHE)) {
                 $this->_accessToken = $cacheAccessToken;
             } else {
                 if ($result = $this->httpAccessTokenByRefreshToken()) {
@@ -83,7 +83,7 @@ class BaseOAuth
     public function setAccessToken($token, $duration)
     {
         $this->_accessToken = $token;
-        return $this->setCache($this->getOpenid() . self::ACCESS_TOKEN_CACHE, $token, $duration);
+        return Wechat::setCache($this->getOpenid() . self::ACCESS_TOKEN_CACHE, $token, $duration);
     }
 
     /**
@@ -127,9 +127,9 @@ class BaseOAuth
     public function httpAccessTokenByCode()
     {
         if ($code = $this->getCode()) {
-            $result = $this->_component->httpGet(self::ACCESS_TOKEN_URL, [
-                'appid' => $this->_component->appid,
-                'secret' => $this->_component->appsecret,
+            $result = Wechat::httpGet(self::ACCESS_TOKEN_URL, [
+                'appid' => Wechat::$component->appid,
+                'secret' => Wechat::$component->appsecret,
                 'code' => $code
             ], false);
             if ($result && !isset($result['errcode'])) {
@@ -160,8 +160,8 @@ class BaseOAuth
     public function httpAccessTokenByRefreshToken()
     {
         if ($refreshToken = $this->getRefreshToken()) {
-            $result = $this->_component->httpGet(self::REFRESH_TOKEN_URL, [
-                'appid' => $this->_component->appid,
+            $result = Wechat::httpGet(self::REFRESH_TOKEN_URL, [
+                'appid' => Wechat::$component->appid,
                 'refresh_token' => $refreshToken
             ], false);
             if ($result && !isset($result['errcode'])) {
@@ -184,7 +184,7 @@ class BaseOAuth
     {
         if ($this->_refreshToken === null) {
             $cacheKey = $this->getOpenid() . self::REFRESH_TOKEN_CACHE;
-            if ($cacheRefreshToken = $this->getCache($cacheKey)) {
+            if ($cacheRefreshToken = Wechat::getCache($cacheKey)) {
                 $this->_refreshToken = $cacheRefreshToken;
             } else {
                 return false;
@@ -202,7 +202,7 @@ class BaseOAuth
     public function setRefreshToken($token)
     {
         $this->_refreshToken = $token;
-        return $this->setCache($this->getOpenid() . self::REFRESH_TOKEN_CACHE, $token);
+        return Wechat::setCache($this->getOpenid() . self::REFRESH_TOKEN_CACHE, $token);
     }
 
     /**
@@ -211,33 +211,15 @@ class BaseOAuth
      * @return string
      */
 
-    public function getOAuthUrl($state = null)
+    public function getOAuthUrl($baseUrl, $state = null)
     {
-        return static::OAUTH_URL . '?' . http_build_query([
-            'appid' => $this->_component->appid,
+        return $baseUrl . '?' . http_build_query([
+            'appid' => Wechat::$component->appid,
             'redirect_uri' => \Yii::$app->request->absoluteUrl,
             'response_type' => 'code',
             'scope' => 'snsapi_base',
             'state' => $state
         ]) . '#wechat_redirect';
-    }
-
-    /**
-     * 调用应用缓存组件进行缓存数据
-     * 智能判断应用缓存组件是否开启
-     * 如果没有开启直接返回失败
-     * @param $key
-     * @param $value
-     * @return bool
-     */
-
-    public function setCache($key, $value, $duration = null)
-    {
-        if (\Yii::$app->cache) {
-            return \Yii::$app->cache->set($key, $value, $duration);
-        } else {
-            return false;
-        }
     }
 
 } 

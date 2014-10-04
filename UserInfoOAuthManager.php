@@ -31,7 +31,7 @@ class UserInfoOAuthManager extends BaseOAuthManager
      * @return bool|mixed
      */
 
-    public function getUserInfo($lang = 'zh_CN')
+    public function getUserInfo($field = null, $lang = 'zh_CN')
     {
         if ($this->_userInfo === null) {
             if (!$this->_userInfo = $this->getCache($this->getOpenid() . self::USER_INFO_CACHE)) {
@@ -47,7 +47,7 @@ class UserInfoOAuthManager extends BaseOAuthManager
                 }
             }
         }
-        return $this->_userInfo;
+        return $field === null ? $this->_userInfo : (isset($this->_userInfo[$field]) ? $this->_userInfo[$field] : false);
     }
 
     /**

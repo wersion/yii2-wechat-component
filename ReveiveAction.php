@@ -21,14 +21,14 @@ class ReveiveAction extends Action
         if (Wechat::$component === null) {
             throw new InvalidParamException('Not Found The Wechat Component');
         } else {
-            if (Wechat::$component->getReceiveManager()->signature($signature, $timestamp, $nonce)) {
+            if (Wechat::$component->receive->signature($signature, $timestamp, $nonce)) {
                 if ($echostr === null) {
                     $receive = file_get_contents('php://input');
                     if (empty($receive)) {
                         throw new HttpException(404);
                     } else {
-                        $receiveObj = simplexml_load_string($receive, 'SimpleXMLElement', LIBXML_NOCDATA);
-                        return Wechat::$component->getReceiveManager()->setReceiveObj($receiveObj)->action();
+                        //$receiveObj = simplexml_load_string($receive, 'SimpleXMLElement', LIBXML_NOCDATA);
+                        return Wechat::$component->receive->action($receive);
                     }
                 } else {
                     return $echostr;

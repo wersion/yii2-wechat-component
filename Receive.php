@@ -9,7 +9,7 @@
 namespace iit\wechat;
 
 
-class ReceiveManager extends BaseWechatManager
+class Receive
 {
 
     private $_receiveObj;
@@ -23,7 +23,7 @@ class ReceiveManager extends BaseWechatManager
 
     public function signature($signature, $timestamp, $nonce)
     {
-        $tmpArr = [$this->token, $timestamp, $nonce];
+        $tmpArr = [Wechat::$component->token, $timestamp, $nonce];
         sort($tmpArr, SORT_STRING);
         return sha1(implode($tmpArr)) == $signature ? true : false;
     }
@@ -70,8 +70,9 @@ class ReceiveManager extends BaseWechatManager
      * @return string
      */
 
-    public function action()
+    public function action($receive)
     {
+
         return $this->getWechat()->getResponseManager()->sendText(\Yii::t('wechat_component', '功能尚未开放'));
     }
 

@@ -9,7 +9,7 @@
 namespace iit\wechat;
 
 
-class ResponseManager extends BaseWechatManager
+class Response
 {
 
     /**
@@ -21,8 +21,8 @@ class ResponseManager extends BaseWechatManager
     public function sendText($message)
     {
         $sendArr = [
-            'ToUserName' => $this->getWechat()->getReceiveManager()->getOpenid(),
-            'FromUserName' => $this->getWechat()->getReceiveManager()->getWechatid(),
+            'ToUserName' => Wechat::$component->receive->openid,
+            'FromUserName' => Wechat::$component->receive->wechatid,
             'CreateTime' => time(),
             'MsgType' => 'text',
             'Content' => $message
@@ -39,7 +39,7 @@ class ResponseManager extends BaseWechatManager
     public function sendImage($mediaId)
     {
         $sendArr = [
-            'ToUserName' => $this->getWechat()->getReceiveManager()->getOpenid(),
+            'ToUserName' => Wechat::$component->receive->openid,
             'FromUserName' => $this->getWechat()->getReceiveManager()->getWechatid(),
             'CreateTime' => time(),
             'MsgType' => 'image',

@@ -9,15 +9,13 @@
 namespace iit\wechat;
 
 
-class ServiceManager extends BaseWechatManager
+class Service
 {
-
-    const SERVICE_URL = 'https://api.weixin.qq.com/cgi-bin/message/custom/send';
-    const GET_SERVICE_RECORD_URL = 'https://api.weixin.qq.com/cgi-bin/customservice/getrecord';
+    const SERVICE_MESSAGE_URL = 'serviceMessage';
 
     public function sendText($openid, $text)
     {
-        $result = $this->getWechat()->httpRaw(self::SERVICE_URL, $this->getWechat()->jsonEncode([
+        $result = Wechat::httpRaw(Url::get(self::SERVICE_MESSAGE_URL), Wechat::jsonEncode([
             'touser' => $openid,
             'msgtype' => 'text',
             'text' => [
@@ -29,7 +27,7 @@ class ServiceManager extends BaseWechatManager
 
     public function sendImage($openid, $mediaId)
     {
-        $result = $this->getWechat()->httpRaw(self::SERVICE_URL, $this->getWechat()->jsonEncode([
+        $result = Wechat::httpRaw(Url::get(self::SERVICE_MESSAGE_URL), Wechat::jsonEncode([
             'touser' => $openid,
             'msgtype' => 'image',
             'image' => [
@@ -41,7 +39,7 @@ class ServiceManager extends BaseWechatManager
 
     public function sendVoice($openid, $mediaId)
     {
-        $result = $this->getWechat()->httpRaw(self::SERVICE_URL, $this->getWechat()->jsonEncode([
+        $result = Wechat::httpRaw(Url::get(self::SERVICE_MESSAGE_URL), Wechat::jsonEncode([
             'touser' => $openid,
             'msgtype' => 'voice',
             'voice' => [
@@ -53,7 +51,7 @@ class ServiceManager extends BaseWechatManager
 
     public function sendVideo($openid, $videoMediaId, $thumbMediaId, $title = '', $description = '')
     {
-        $result = $this->getWechat()->httpRaw(self::SERVICE_URL, $this->getWechat()->jsonEncode([
+        $result = Wechat::httpRaw(Url::get(self::SERVICE_MESSAGE_URL), Wechat::jsonEncode([
             'touser' => $openid,
             'msgtype' => 'video',
             'video' => [
@@ -68,7 +66,7 @@ class ServiceManager extends BaseWechatManager
 
     public function sendMusic($openid, $musicUrl, $hqMusicUrl, $thumbMediaId, $title = '', $description = '')
     {
-        $result = $this->getWechat()->httpRaw(self::SERVICE_URL, $this->getWechat()->jsonEncode([
+        $result = Wechat::httpRaw(Url::get(self::SERVICE_MESSAGE_URL), Wechat::jsonEncode([
             'touser' => $openid,
             'msgtype' => 'music',
             'music' => [
@@ -94,7 +92,7 @@ class ServiceManager extends BaseWechatManager
                     'url' => $article->url,
                 ];
             }
-            $result = $this->getWechat()->httpRaw(self::SERVICE_URL, $this->getWechat()->jsonEncode([
+            $result = Wechat::httpRaw(Url::get(self::SERVICE_MESSAGE_URL), Wechat::jsonEncode([
                 'touser' => $openid,
                 'msgtype' => 'news',
                 'news' => [

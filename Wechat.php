@@ -29,7 +29,7 @@ class Wechat
     /**
      * @var String The Cache AccessToken
      */
-    private static $_accessToken;
+    private static $_cache;
 
 
     /**
@@ -158,21 +158,21 @@ class Wechat
 
     public static function getAccessToken($forceUpdate = false)
     {
-        if (self::$_accessToken === null || $forceUpdate === true) {
+        if (self::$_cache['accessToken'] === null || $forceUpdate === true) {
             $cacheKey = sha1(self::$component->appid);
             $cacheToken = false;
             $forceUpdate === false && $cacheToken = self::getCache($cacheKey);
             if ($cacheToken == false || $forceUpdate == true) {
                 $result = self::httpGet(self::GET_ACCESS_TOKEN_URL, ['appid' => self::$component->appid, 'secret' => self::$component->appsecret], false, false);
                 if (!isset($result['errcode'])) {
-                    self::$_accessToken = $result['access_token'];
-                    self::setCache($cacheKey, self::$_accessToken, $result['expires_in']);
+                    self::$_cache['accessToken'] = $result['access_token'];
+                    self::setCache($cacheKey, self::$_cache['accessToken'], $result['expires_in']);
                 }
             } else {
-                self::$_accessToken = $cacheToken;
+                self::$_cache['accessToken'] = $cacheToken;
             }
         }
-        return (self::$_accessToken === null) ? false : self::$_accessToken;
+        return (self::$_cache['accessToken'] === null) ? false : self::$_cache['accessToken'];
     }
 
 
@@ -224,6 +224,18 @@ class Wechat
     public static function jsonDecode($json)
     {
         return json_decode($json, true);
+    }
+
+    public static function getNews()
+    {
+        self::$_cache['news'] === null && self::$_cache['news'] = new \iit\wechat\News();
+        return self::$_cache['news'];
+    }
+
+    public static function getMassNews()
+    {
+        self::$_cache['massNews'] === null && self::$_cache['massNews'] = new \iit\wechat\MassNews();
+        return self::$_cache['massNews'];
     }
 
 }

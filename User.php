@@ -9,7 +9,7 @@
 namespace iit\wechat;
 
 
-class UserManager extends BaseWechatManager
+class User
 {
 
     const LANG_CN = 'zh_CN';
