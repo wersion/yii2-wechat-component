@@ -9,7 +9,7 @@
 namespace iit\wechat;
 
 
-class BaseOAuth
+class OAuth
 {
     /**
      * OAuth2.0鉴权地址
