@@ -5,6 +5,13 @@
 * 验证消息真实性
 * 接收数据并转换成数组
 
+##安装方法
+在项目的`composer.json`的`require`数组内加入`"iit/yii2-wechat-component": "*"`
+
+    "require": {
+        "iit/yii2-wechat-component": "*"
+    }
+
 ##使用方法
 在配置文件里面加入下列代码
 
