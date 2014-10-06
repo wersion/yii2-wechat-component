@@ -9,12 +9,14 @@
 namespace iit\wechat;
 
 
+use yii\helpers\ArrayHelper;
+
 class Receive
 {
-
-    private $_receiveObj;
+    private $_receiveData;
 
     /**
+     * 计算签名并验证是否正确
      * @param $signature
      * @param $timestamp
      * @param $nonce
@@ -29,51 +31,41 @@ class Receive
     }
 
     /**
-     * @return mixed
+     * 获取微信服务器发送过来的信息并转换成数组
+     * @param null $key
+     * @return array|bool
      */
 
-    public function getReceiveObj()
+    public function getData($key = null)
     {
-        return $this->_receiveObj;
+        if ($this->_receiveData === null) {
+            $data = file_get_contents('php://input');
+            if (empty($data)) {
+                return false;
+            }
+            $this->_receiveData = ArrayHelper::toArray(simplexml_load_string($data, 'SimpleXMLElement', LIBXML_NOCDATA));
+        }
+        return $key === null ? $this->_receiveData : $this->_receiveData[$key];
     }
 
     /**
-     * @return bool|string
+     * 获取发送信息的OPENID
+     * @return array|bool
      */
 
     public function getOpenid()
     {
-        return isset($this->getReceiveObj()->FromUserName) ? (string)$this->getReceiveObj()->FromUserName : false;
+        return $this->getData('FromUserName');
     }
 
     /**
-     * @return bool|string
+     * 获取接收信息的微信ID
+     * @return array|bool
      */
 
     public function getWechatid()
     {
-        return isset($this->getReceiveObj()->ToUserName) ? (string)$this->getReceiveObj()->ToUserName : false;
-    }
-
-    /**
-     * @param $receiveObj
-     * @return \iit\wechat\ReceiveManager $this
-     */
-
-    public function setReceiveObj($receiveObj)
-    {
-        $this->_receiveObj = $receiveObj;
-        return $this;
-    }
-
-    /**
-     * @return string
-     */
-
-    public function action($receive)
-    {
-
-        return $this->getWechat()->getResponseManager()->sendText(\Yii::t('wechat_component', '功能尚未开放'));
+        return $this->getData('ToUserName');
     }
 
 } 

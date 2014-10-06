@@ -21,8 +21,8 @@ class Response
     public function sendText($message)
     {
         $sendArr = [
-            'ToUserName' => Wechat::$component->receive->openid,
-            'FromUserName' => Wechat::$component->receive->wechatid,
+            'ToUserName' => Wechat::$component->receive->getOpenid(),
+            'FromUserName' => Wechat::$component->receive->getWechatid(),
             'CreateTime' => time(),
             'MsgType' => 'text',
             'Content' => $message
@@ -39,8 +39,8 @@ class Response
     public function sendImage($mediaId)
     {
         $sendArr = [
-            'ToUserName' => Wechat::$component->receive->openid,
-            'FromUserName' => $this->getWechat()->getReceiveManager()->getWechatid(),
+            'ToUserName' => Wechat::$component->receive->getOpenid(),
+            'FromUserName' => Wechat::$component->receive->getWechatid(),
             'CreateTime' => time(),
             'MsgType' => 'image',
             'Image' => [
@@ -59,8 +59,8 @@ class Response
     public function sendVoice($mediaId)
     {
         $sendArr = [
-            'ToUserName' => $this->getWechat()->getReceiveManager()->getOpenid(),
-            'FromUserName' => $this->getWechat()->getReceiveManager()->getWechatid(),
+            'ToUserName' => Wechat::$component->receive->getOpenid(),
+            'FromUserName' => Wechat::$component->receive->getWechatid(),
             'CreateTime' => time(),
             'MsgType' => 'voice',
             'Voice' => [
@@ -81,8 +81,8 @@ class Response
     public function sendVideo($mediaId, $title = '', $description = '')
     {
         $sendArr = [
-            'ToUserName' => $this->getWechat()->getReceiveManager()->getOpenid(),
-            'FromUserName' => $this->getWechat()->getReceiveManager()->getWechatid(),
+            'ToUserName' => Wechat::$component->receive->getOpenid(),
+            'FromUserName' => Wechat::$component->receive->getWechatid(),
             'CreateTime' => time(),
             'MsgType' => 'video',
             'Video' => [
@@ -107,8 +107,8 @@ class Response
     public function sendMusic($musicUrl, $hqMusicUrl, $thumbMediaId, $title = '', $description = '')
     {
         $sendArr = [
-            'ToUserName' => $this->getWechat()->getReceiveManager()->getOpenid(),
-            'FromUserName' => $this->getWechat()->getReceiveManager()->getWechatid(),
+            'ToUserName' => Wechat::$component->receive->getOpenid(),
+            'FromUserName' => Wechat::$component->receive->getWechatid(),
             'CreateTime' => time(),
             'MsgType' => 'music',
             'Music' => [
@@ -144,8 +144,8 @@ class Response
                 ];
             }
             $sendArr = [
-                'ToUserName' => $this->getWechat()->getReceiveManager()->getOpenid(),
-                'FromUserName' => $this->getWechat()->getReceiveManager()->getWechatid(),
+                'ToUserName' => Wechat::$component->receive->getOpenid(),
+                'FromUserName' => Wechat::$component->receive->getWechatid(),
                 'CreateTime' => time(),
                 'MsgType' => 'news',
                 'ArticleCount' => $news->countArticle(),
@@ -160,8 +160,8 @@ class Response
     public function turnToService()
     {
         return $this->send([
-            'ToUserName' => $this->getWechat()->getReceiveManager()->getOpenid(),
-            'FromUserName' => $this->getWechat()->getReceiveManager()->getWechatid(),
+            'ToUserName' => Wechat::$component->receive->getOpenid(),
+            'FromUserName' => Wechat::$component->receive->getWechatid(),
             'CreateTime' => time(),
             'MsgType' => 'transfer_customer_service'
         ]);

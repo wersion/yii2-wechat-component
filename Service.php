@@ -12,6 +12,7 @@ namespace iit\wechat;
 class Service
 {
     const SERVICE_MESSAGE_URL = 'serviceMessage';
+    const CUSTOM_SERVICE_URL = 'customService';
 
     public function sendText($openid, $text)
     {
@@ -105,9 +106,16 @@ class Service
         }
     }
 
-    public function getServiceRecord($beginTime, $endTime, $pageIndex = 1, $pageSize = 1000, $openid = null)
+    public function getServiceRecord($startTime, $endTime, $pageIndex = 1, $pageSize = 1000, $openid = null)
     {
-
+        $result = Wechat::httpPost(self::CUSTOM_SERVICE_URL, Wechat::jsonEncode([
+            'starttime' => $startTime,
+            'endtime' => $endTime,
+            'openid' => $openid,
+            'pagesize' => $pageSize,
+            'pageindex' => $pageIndex
+        ]));
+        return isset($result['errcode']) ? false : $result['recordlist'];
     }
 
 } 

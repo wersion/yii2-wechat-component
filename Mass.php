@@ -11,15 +11,15 @@ namespace iit\wechat;
 
 class Mass
 {
-    const UPLOAD_NEWS_URL = 'https://api.weixin.qq.com/cgi-bin/media/uploadnews';
-    const UPLOAD_VIDEO_URL = 'https://file.api.weixin.qq.com/cgi-bin/media/uploadvideo';
-    const GROUP_SEND_URL = 'https://api.weixin.qq.com/cgi-bin/message/mass/sendall';
-    const OPENID_SEND_URL = 'https://api.weixin.qq.com/cgi-bin/message/mass/send';
-    const DELETE_URL = 'https://api.weixin.qq.com/cgi-bin/message/mass/delete';
+    const UPLOAD_NEWS_URL = 'mass_upload_news';
+    const UPLOAD_VIDEO_URL = 'mass_upload_video';
+    const GROUP_SEND_URL = 'mass_group_send';
+    const OPENID_SEND_URL = 'mass_openid_send';
+    const DELETE_URL = 'mass_delete';
 
     public function sendTextByGroupId($groupid, $text)
     {
-        $result = Wechat::httpRaw(self::GROUP_SEND_URL, json_encode([
+        $result = Wechat::httpRaw(self::GROUP_SEND_URL, Wechat::jsonEncode([
             'filter' => [
                 'group_id' => $groupid
             ],
@@ -121,7 +121,7 @@ class Mass
                     'digest' => $line->digest,
                 ];
             }
-            $result = $this->getWechat()->httpRaw(self::UPLOAD_NEWS_URL, $this->getWechat()->jsonEncode([
+            $result = Wechat::httpRaw(self::UPLOAD_NEWS_URL, Wechat::jsonEncode([
                 'articles' => $articles
             ]));
             return isset($result['media_id']) ? $result['media_id'] : false;
@@ -132,7 +132,7 @@ class Mass
 
     public function sendTextByOpenids(array $openids, $text)
     {
-        $result = $this->getWechat()->httpRaw(self::OPENID_SEND_URL, $this->getWechat()->jsonEncode([
+        $result = Wechat::httpRaw(self::OPENID_SEND_URL, Wechat::jsonEncode([
             'touser' => $openids,
             'msgtype' => 'text',
             'text' => [
@@ -144,7 +144,7 @@ class Mass
 
     public function sendImageByOpenids(array $openids, $mediaId)
     {
-        $result = $this->getWechat()->httpRaw(self::OPENID_SEND_URL, $this->getWechat()->jsonEncode([
+        $result = Wechat::httpRaw(self::OPENID_SEND_URL, Wechat::jsonEncode([
             'touser' => $openids,
             'msgtype' => 'image',
             'image' => [
@@ -158,7 +158,7 @@ class Mass
     {
         $mediaId = $this->uploadVideo($mediaId, $title, $description);
         if ($mediaId !== false) {
-            $result = $this->getWechat()->httpRaw(self::OPENID_SEND_URL, $this->getWechat()->jsonEncode([
+            $result = Wechat::httpRaw(self::OPENID_SEND_URL, Wechat::jsonEncode([
                 'touser' => $openids,
                 'msgtype' => 'video',
                 'video' => [
@@ -175,7 +175,7 @@ class Mass
 
     public function sendVoiceByOpenids(array $openids, $mediaId)
     {
-        $result = $this->getWechat()->httpRaw(self::OPENID_SEND_URL, $this->getWechat()->jsonEncode([
+        $result = Wechat::httpRaw(self::OPENID_SEND_URL, Wechat::jsonEncode([
             'touser' => $openids,
             'msgtype' => 'voice',
             'voice' => [
@@ -189,7 +189,7 @@ class Mass
     {
         $mediaId = $this->uploadNews($news);
         if ($mediaId !== false) {
-            $result = $this->getWechat()->httpRaw(self::OPENID_SEND_URL, $this->getWechat()->jsonEncode([
+            $result = Wechat::httpRaw(self::OPENID_SEND_URL, Wechat::jsonEncode([
                 'touser' => $openids,
                 'msgtype' => 'mpnews',
                 'mpnews' => [
@@ -204,7 +204,7 @@ class Mass
 
     public function delete($msgid)
     {
-        $result = $this->getWechat()->httpRaw(self::DELETE_URL, $this->getWechat()->jsonEncode([
+        $result = Wechat::httpRaw(self::DELETE_URL, Wechat::jsonEncode([
             'msg_id' => $msgid
         ]));
         return $result['errcode'] == 0 ? true : false;

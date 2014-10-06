@@ -15,24 +15,24 @@ class User
     const LANG_CN = 'zh_CN';
     const LANG_EN = 'en';
     const LANG_TW = 'zh_TW';
-    const GROUP_LIST_URL = 'https://api.weixin.qq.com/cgi-bin/groups/get';
-    const GROUP_CREATE_URL = 'https://api.weixin.qq.com/cgi-bin/groups/create';
-    const SELECT_USER_GROUP_URL = 'https://api.weixin.qq.com/cgi-bin/groups/getid';
-    const MODIFY_GROUP_NAME_URL = 'https://api.weixin.qq.com/cgi-bin/groups/update';
-    const MOVE_USER_GROUP_URL = 'https://api.weixin.qq.com/cgi-bin/groups/members/update';
-    const SET_USER_REMARK_URL = 'https://api.weixin.qq.com/cgi-bin/user/info/updateremark';
-    const USER_INFO_URL = 'https://api.weixin.qq.com/cgi-bin/user/info';
-    const USER_LIST_URL = 'https://api.weixin.qq.com/cgi-bin/user/get';
+    const GROUP_LIST_URL = 'group_list';
+    const GROUP_CREATE_URL = 'group_create';
+    const SELECT_USER_GROUP_URL = 'select_user_group';
+    const MODIFY_GROUP_NAME_URL = 'modify_group_name';
+    const MOVE_USER_GROUP_URL = 'move_user_group';
+    const SET_USER_REMARK_URL = 'set_user_remark';
+    const GET_USER_INFO_URL = 'get_user_info';
+    const GET_USER_LIST_URL = 'get_user_list';
 
     public function getGroupList()
     {
-        $result = $this->getWechat()->httpGet(self::GROUP_LIST_URL);
+        $result = Wechat::httpGet(self::GROUP_LIST_URL);
         return isset($result['errcode']) ? false : $result;
     }
 
     public function createGroup($name)
     {
-        $result = $this->getWechat()->httpRaw(self::GROUP_CREATE_URL, $this->getWechat()->jsonEncode([
+        $result = Wechat::httpRaw(self::GROUP_CREATE_URL, Wechat::jsonEncode([
             'group' => [
                 'name' => $name
             ]
@@ -42,7 +42,7 @@ class User
 
     public function selectUserGroup($openid)
     {
-        $result = $this->getWechat()->httpRaw(self::SELECT_USER_GROUP_URL, $this->getWechat()->jsonEncode([
+        $result = Wechat::httpRaw(self::SELECT_USER_GROUP_URL, Wechat::jsonEncode([
             'openid' => $openid
         ]));
         return isset($result['errcode']) ? false : $result['groupid'];
@@ -50,7 +50,7 @@ class User
 
     public function modifyGroupName($groupid, $newName)
     {
-        $result = $this->getWechat()->httpRaw(self::MODIFY_GROUP_NAME_URL, $this->getWechat()->jsonEncode([
+        $result = Wechat::httpRaw(self::MODIFY_GROUP_NAME_URL, Wechat::jsonEncode([
             'group' => [
                 'id' => $groupid,
                 'name' => $newName
@@ -61,7 +61,7 @@ class User
 
     public function moveUserGroup($openid, $to_groupid)
     {
-        $result = $this->getWechat()->httpRaw(self::MOVE_USER_GROUP_URL, $this->getWechat()->jsonEncode([
+        $result = Wechat::httpRaw(self::MOVE_USER_GROUP_URL, Wechat::jsonEncode([
             'openid' => $openid,
             'to_groupid' => $to_groupid
         ]));
@@ -70,7 +70,7 @@ class User
 
     public function setRemark($openid, $remark)
     {
-        $result = $this->getWechat()->httpRaw(self::SET_USER_REMARK_URL, $this->getWechat()->jsonEncode([
+        $result = Wechat::httpRaw(self::SET_USER_REMARK_URL, Wechat::jsonEncode([
             'openid' => $openid,
             'remark' => $remark
         ]));
@@ -79,7 +79,7 @@ class User
 
     public function getUserInfo($openid, $lang = self::LANG_CN)
     {
-        $result = Wechat::httpGet(self::USER_INFO_URL, [
+        $result = Wechat::httpGet(self::GET_USER_INFO_URL, [
             'openid' => $openid,
             'lang' => $lang
         ]);
@@ -88,7 +88,7 @@ class User
 
     public function getUserList($next_openid = null)
     {
-        $result = Wechat::httpGet(self::USER_LIST_URL, [
+        $result = Wechat::httpGet(self::GET_USER_LIST_URL, [
             'next_openid' => $next_openid
         ]);
         return isset($result['errcode']) ? false : $result;

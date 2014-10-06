@@ -20,6 +20,8 @@ use yii\helpers\ArrayHelper;
  * @property \iit\wechat\Menu $menu
  * @property \iit\wechat\Service $service
  * @property \iit\wechat\User $user
+ * @property \iit\wechat\OAuth $oauth
+ * @property \iit\wechat\Template $template
  *
  */
 class Component extends \yii\base\Component
@@ -28,8 +30,6 @@ class Component extends \yii\base\Component
     public $appsecret;
     public $token;
     public $classMap = [];
-
-    private $_apps;
 
     /**
      * @throws \yii\base\InvalidParamException
@@ -57,11 +57,11 @@ class Component extends \yii\base\Component
     {
         $classMap = ArrayHelper::merge($this->coreClass(), $this->classMap);
         if (isset($classMap[$appName]) && !empty($classMap[$appName])) {
-            $cacheKey = sha1($classMap[$appName]);
-            if (!isset($this->_apps[$cacheKey])) {
-                $this->_apps[$cacheKey] = \Yii::createObject($classMap[$appName]);
+            $name = 'wechat' . ucfirst($appName);
+            if (!\Yii::$container->has($name)) {
+                \Yii::$container->set($name, $classMap[$appName]);
             }
-            return $this->_apps[$cacheKey];
+            return \Yii::$container->get($name);
         } else {
             throw new InvalidParamException("Not Found " . $appName);
         }
@@ -76,9 +76,18 @@ class Component extends \yii\base\Component
             'response' => '\iit\wechat\Response',
             'media' => '\iit\wechat\Media',
             'user' => '\iit\wechat\User',
-            'baseOAuth' => '\iit\wechat\BaseOAuth',
-            'userInfoOAuth' => '\iit\wechat\UserInfoOAuth',
+            'oauth' => '\iit\wechat\OAuth',
+            'template' => '\iit\wechat\Template',
         ];
+    }
+
+    /**
+     * @return \iit\wechat\Template $template
+     */
+
+    public function getTemplate()
+    {
+        return $this->getApp('template');
     }
 
     /**
@@ -91,25 +100,16 @@ class Component extends \yii\base\Component
     }
 
     /**
-     * @return \iit\wechat\BaseOAuth $baseOAuth
+     * @return \iit\wechat\OAuth $OAuth
      */
 
-    public function getBaseOAuth()
+    public function getOAuth()
     {
-        return $this->getApp('baseOAuth');
+        return $this->getApp('oauth');
     }
 
     /**
-     * @return \iit\wechat\UserInfoOAuth userInfoOAuth
-     */
-
-    public function getUserInfoOAuth()
-    {
-        return $this->getApp('userInfoOAuth');
-    }
-
-    /**
-     * @return \iit\wechat\UserManager $userManager
+     * @return \iit\wechat\User $userManager
      */
 
     public function getUser()
@@ -118,7 +118,7 @@ class Component extends \yii\base\Component
     }
 
     /**
-     * @return \iit\wechat\MediaManager mediaManager
+     * @return \iit\wechat\Media $media
      */
 
     public function getMedia()
@@ -127,7 +127,7 @@ class Component extends \yii\base\Component
     }
 
     /**
-     * @return \iit\wechat\MenuManager $menuManager
+     * @return \iit\wechat\Menu $menu
      */
 
     public function getMenu()
@@ -136,7 +136,7 @@ class Component extends \yii\base\Component
     }
 
     /**
-     * @return \iit\wechat\ResponseManager $responseManager
+     * @return \iit\wechat\Response $response
      */
 
     public function getResponse()
@@ -145,7 +145,7 @@ class Component extends \yii\base\Component
     }
 
     /**
-     * @return \iit\wechat\ServiceManager $serviceManager
+     * @return \iit\wechat\Service $service
      */
 
     public function getService()

@@ -11,23 +11,11 @@ namespace iit\wechat;
 
 class OAuth
 {
-    /**
-     * OAuth2.0鉴权地址
-     */
-
-    const OAUTH_URL = 'https://open.weixin.qq.com/connect/oauth2/authorize';
-
-    /**
-     * 通过验证码获取访问token地址
-     */
-
-    const ACCESS_TOKEN_URL = 'https://api.weixin.qq.com/sns/oauth2/access_token?grant_type=authorization_code';
-
-    /**
-     * 通过刷新token获取访问token地址
-     */
-
-    const REFRESH_TOKEN_URL = 'https://api.weixin.qq.com/sns/oauth2/refresh_token?grant_type=refresh_token';
+    const BASE_AUTH = 'snsapi_base';
+    const USER_INFO_AUTH = 'snsapi_userinfo';
+    const OAUTH_URL = 'oauth_url';
+    const REFRESH_TOKEN_URL = 'oauth_refresh_token';
+    const ACCESS_TOKEN_URL = 'oauth_access_token';
 
     /**
      * 通过session存放openid的key值
@@ -116,7 +104,7 @@ class OAuth
     public function setOpenid($openid)
     {
         $this->_openid = $openid;
-        return \Yii::$app->session->set(self::OPENID_SESSION_KEY, $openid);
+        \Yii::$app->session->set(self::OPENID_SESSION_KEY, $openid);
     }
 
     /**
@@ -127,7 +115,7 @@ class OAuth
     public function httpAccessTokenByCode()
     {
         if ($code = $this->getCode()) {
-            $result = Wechat::httpGet(self::ACCESS_TOKEN_URL, [
+            $result = Wechat::httpGet(Url::get(self::ACCESS_TOKEN_URL), [
                 'appid' => Wechat::$component->appid,
                 'secret' => Wechat::$component->appsecret,
                 'code' => $code
@@ -160,7 +148,7 @@ class OAuth
     public function httpAccessTokenByRefreshToken()
     {
         if ($refreshToken = $this->getRefreshToken()) {
-            $result = Wechat::httpGet(self::REFRESH_TOKEN_URL, [
+            $result = Wechat::httpGet(Url::get(self::REFRESH_TOKEN_URL), [
                 'appid' => Wechat::$component->appid,
                 'refresh_token' => $refreshToken
             ], false);
@@ -211,13 +199,13 @@ class OAuth
      * @return string
      */
 
-    public function getOAuthUrl($baseUrl, $state = null)
+    public function getOAuthUrl($type, $state = null)
     {
-        return $baseUrl . '?' . http_build_query([
+        return Url::get(self::OAUTH_URL) . '?' . http_build_query([
             'appid' => Wechat::$component->appid,
             'redirect_uri' => \Yii::$app->request->absoluteUrl,
             'response_type' => 'code',
-            'scope' => 'snsapi_base',
+            'scope' => $type,
             'state' => $state
         ]) . '#wechat_redirect';
     }

@@ -17,8 +17,8 @@ class Media
     const IMAGE_MAX_FILE_SIZE = '1M';
     const VOICE_MAX_FILE_SIZE = '2M';
     const THUMB_MAX_FILE_SIZE = '64K';
-    const MEDIA_UPLOAD_URL = 'http://file.api.weixin.qq.com/cgi-bin/media/upload';
-    const MEDIA_DOWNLOAD_URL = 'http://file.api.weixin.qq.com/cgi-bin/media/get';
+    const MEDIA_UPLOAD_URL = 'mediaUpload';
+    const MEDIA_DOWNLOAD_URL = 'mediaDownload';
     private $_fileCacheKey;
 
     public function uploadImage($filePath, $forced = false)
@@ -35,11 +35,12 @@ class Media
     public function uploadMedia($filePath, $mediaType, $forced = false)
     {
         if ($this->getCacheKey($filePath)) {
-            if ($cache = Wechat::getCache($this->getCacheKey($filePath)) && $forced === false) {
-                return $cache;
+            if (Wechat::getCache($this->getCacheKey($filePath)) && $forced === false) {
+                return Wechat::getCache($this->getCacheKey($filePath));
             } else {
                 if ($this->checkFile($filePath, $mediaType)) {
-                    $result = Wechat::httpPost(self::MEDIA_UPLOAD_URL . '?type=' . $mediaType, [
+                    $result = Wechat::httpPost(self::MEDIA_UPLOAD_URL, [
+                        'type' => $mediaType,
                         'media' => '@' . $filePath
                     ]);
                     if (isset($result['media_id'])) {
@@ -53,6 +54,7 @@ class Media
                 }
             }
         } else {
+
             return false;
         }
 
@@ -146,14 +148,16 @@ class Media
         return $this->uploadMedia($filePath, 'thumb', $forced);
     }
 
-    public function downloadMedia($mediaId, $savePath)
+    public function downloadMedia($mediaId, $savePath = null)
     {
-        $url = self::MEDIA_DOWNLOAD_URL . '?' . http_build_query([
+        $url = Url::get(self::MEDIA_DOWNLOAD_URL) . '?' . http_build_query([
                 'access_token' => Wechat::getAccessToken(),
                 'media_id' => $mediaId
             ]);
+        $fp = fopen($savePath,'w');
         $ch = curl_init($url);
-        var_dump(curl_getinfo($ch));
-
+        curl_setopt($ch,CURLOPT_FILE,$fp);
+        curl_exec($ch);
+        curl_close($ch);
     }
 } 

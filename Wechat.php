@@ -13,14 +13,11 @@ use yii\base\InvalidParamException;
 /**
  * Class Wechat
  * @package iit\wechat
- *
- * @property \iit\wechat\UserManager $userManager The User Manager
- *
  */
 class Wechat
 {
 
-    const GET_ACCESS_TOKEN_URL = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential';
+    const GET_ACCESS_TOKEN_URL = 'access_token';
     /**
      * @var \iit\wechat\Component The Wechat Component
      */
@@ -104,6 +101,7 @@ class Wechat
      */
     public static function http($url, $params = null, $type = 'get', $token = false)
     {
+        $url = Url::get($url);
         if ($token) {
             if ($token == 'url') {
                 $url .= (stripos($url, '?') === false ? '?' : '&') . "access_token=" . self::getAccessToken();
@@ -159,14 +157,14 @@ class Wechat
     public static function getAccessToken($forceUpdate = false)
     {
         if (self::$_cache['accessToken'] === null || $forceUpdate === true) {
-            $cacheKey = sha1(self::$component->appid);
+            $cacheKey = sha1(Wechat::$component->appid);
             $cacheToken = false;
-            $forceUpdate === false && $cacheToken = self::getCache($cacheKey);
+            $forceUpdate === false && $cacheToken = Wechat::getCache($cacheKey);
             if ($cacheToken == false || $forceUpdate == true) {
-                $result = self::httpGet(self::GET_ACCESS_TOKEN_URL, ['appid' => self::$component->appid, 'secret' => self::$component->appsecret], false, false);
+                $result = Wechat::httpGet(Wechat::GET_ACCESS_TOKEN_URL, ['appid' => Wechat::$component->appid, 'secret' => Wechat::$component->appsecret], false, false);
                 if (!isset($result['errcode'])) {
                     self::$_cache['accessToken'] = $result['access_token'];
-                    self::setCache($cacheKey, self::$_cache['accessToken'], $result['expires_in']);
+                    Wechat::setCache($cacheKey, self::$_cache['accessToken'], $result['expires_in']);
                 }
             } else {
                 self::$_cache['accessToken'] = $cacheToken;
