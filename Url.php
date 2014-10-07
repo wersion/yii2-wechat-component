@@ -47,6 +47,10 @@ class Url
             'url_long_to_short' => self::API_URL_SSL . self::CGI . '/shorturl',
             'create_tick' => self::API_URL_SSL . self::CGI . '/qrcode/create',
             'show_qrcode' => self::MP_URL_SSL . self::CGI . '/showqrcode',
+            'select_menu' => self::API_URL_SSL . self::CGI . '/menu/get',
+            'delete_menu' => self::API_URL_SSL . self::CGI . '/menu/delete',
+            'create_menu' => self::API_URL_SSL . self::CGI . '/menu/create',
+            'send_template' => self::API_URL_SSL . self::CGI . '/message/template/send',
         ];
         return isset($urlList[$type]) ? $urlList[$type] : false;
     }

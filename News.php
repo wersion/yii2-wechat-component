@@ -8,68 +8,34 @@
 
 namespace iit\wechat;
 
-
-use yii\base\Object;
-
-class News extends Object
+class News
 {
-    private $_news = [];
-    private $_groupNews = [];
-    public $maxCount = 10;
+    protected $_news = [];
+    const MAX = 10;
 
-    public function setArticle($id, \iit\wechat\Article $article)
+    public function add($title = null, $description = null, $picUrl = null, $url = null)
     {
-        if ($this->countArticle() <= $this->maxCount) {
-            $this->_news[$id] = $article;
-            return true;
+        if ($this->count() <= self::MAX) {
+            $this->_news[] = [
+                'title' => $title,
+                'description' => $description,
+                'picurl' => $picUrl,
+                'url' => $url
+            ];
+            return $this;
         } else {
             return false;
         }
     }
 
-    /**
-     * @param $id
-     * @return \iit\wechat\Article
-     */
-
-    public function getArticle($id)
-    {
-        isset($this->_news[$id]) ?: $this->_news[$id] = new \iit\wechat\Article();
-        return $this->_news[$id];
-    }
-
-    public function getArticles()
+    public function getAll()
     {
         return $this->_news;
     }
 
-    public function countArticle()
+    public function count()
     {
         return count($this->_news);
     }
 
-    public function setGroupArticle($id, \iit\wechat\GroupArticle $article)
-    {
-        if ($this->countGroupArticle() <= $this->maxCount) {
-            $this->_groupNews[$id] = $article;
-            return true;
-        } else {
-            return false;
-        }
-    }
-
-    public function getGroupArticle($id)
-    {
-        isset($this->_groupNews[$id]) ?: $this->_groupNews[$id] = new \iit\wechat\GroupArticle();
-    }
-
-    public function getGroupArticles()
-    {
-        return $this->_groupNews;
-    }
-
-    public function countGroupArticle()
-    {
-        return count($this->_groupNews);
-    }
 } 

@@ -83,21 +83,12 @@ class Service
 
     public function sendNews($openid, \iit\wechat\News $news)
     {
-        if ($news->countArticle() != 0) {
-            $articles = [];
-            foreach ($news->getArticles() as $article) {
-                $articles[] = [
-                    'title' => $article->title,
-                    'description' => $article->description,
-                    'picurl' => $article->picUrl,
-                    'url' => $article->url,
-                ];
-            }
+        if ($news->count() != 0) {
             $result = Wechat::httpRaw(Url::get(self::SERVICE_MESSAGE_URL), Wechat::jsonEncode([
                 'touser' => $openid,
                 'msgtype' => 'news',
                 'news' => [
-                    'articles' => $articles,
+                    'articles' => $news->getAll(),
                 ]
             ]));
             return $result['errcode'] == 0 ? true : false;

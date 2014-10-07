@@ -107,22 +107,11 @@ class Mass
         }
     }
 
-    public function uploadNews(\iit\wechat\News $news)
+    public function uploadNews(\iit\wechat\MassNews $news)
     {
-        if ($news->countGroupArticle() != 0) {
-            $articles = [];
-            foreach ($news->getGroupArticles() as $line) {
-                $articles[] = [
-                    'thumb_media_id' => $line->thumb_media_id,
-                    'author' => $line->author,
-                    'title' => $line->title,
-                    'content_source_url' => $line->content_source_url,
-                    'content' => $line->content,
-                    'digest' => $line->digest,
-                ];
-            }
+        if ($news->count() != 0) {
             $result = Wechat::httpRaw(self::UPLOAD_NEWS_URL, Wechat::jsonEncode([
-                'articles' => $articles
+                'articles' => $news->getAll()
             ]));
             return isset($result['media_id']) ? $result['media_id'] : false;
         } else {
@@ -185,7 +174,7 @@ class Mass
         return $result['errcode'] == 0 ? $result['msg_id'] : false;
     }
 
-    public function sendNewsByOpenids(array $openids, News $news)
+    public function sendNewsByOpenids(array $openids, \iit\wechat\MassNews $news)
     {
         $mediaId = $this->uploadNews($news);
         if ($mediaId !== false) {

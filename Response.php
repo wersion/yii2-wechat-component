@@ -131,15 +131,15 @@ class Response
 
     public function sendNews(\iit\wechat\News $news)
     {
-        if ($news->countArticle() != 0) {
+        if ($news->count() != 0) {
             $articles = [];
-            foreach ($news->getArticles() as $article) {
+            foreach ($news->getAll() as $article) {
                 $articles[] = [
                     'item' => [
-                        'Title' => $article->title,
-                        'Description' => $article->description,
-                        'PicUrl' => $article->picUrl,
-                        'Url' => $article->url,
+                        'Title' => $article['title'],
+                        'Description' => $article['description'],
+                        'PicUrl' => $article['picurl'],
+                        'Url' => $article['url'],
                     ]
                 ];
             }
@@ -148,7 +148,7 @@ class Response
                 'FromUserName' => Wechat::$component->receive->getWechatid(),
                 'CreateTime' => time(),
                 'MsgType' => 'news',
-                'ArticleCount' => $news->countArticle(),
+                'ArticleCount' => $news->count(),
                 'Articles' => $articles
             ];
             return $this->send($sendArr);

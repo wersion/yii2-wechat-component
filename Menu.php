@@ -9,86 +9,122 @@
 namespace iit\wechat;
 
 
-use yii\base\InvalidParamException;
-
 class Menu
 {
+    const EVENT_VIEW = 'view';
+    const EVENT_CLICK = 'click';
+    const EVENT_SCAN_CODE_PUSH = 'scancode_push';
+    const EVENT_SCAN_CODE_WAIT = 'scancode_waitmsg';
+    const EVENT_PIC_SYSPHOTO = 'pic_sysphoto';
+    const EVENT_PIC_PHOTO_OR_ALBUM = 'pic_photo_or_album';
+    const EVENT_PIC_WEIXIN = 'pic_weixin';
+    const EVENT_LOCATION_SELECT = 'location_select';
     const TOP_MENU_LIMIT = 3;
     const SUB_MENU_LIMIT = 5;
+    const CREATE_MENU_URL = 'create_menu';
+    const SELECT_MENU_URL = 'select_menu';
+    const DELETE_MENU_URL = 'delete_menu';
     private $_menu;
 
-
-    public function getCount($key = null)
+    public function __construct()
     {
-        $count = 0;
-        foreach ($this->_menu as $menu) {
-            $menu['top'] === null && $count++;
-        }
-        return $count;
+        $this->_menu = $this->select(true);
     }
 
-    public function add($key, $type, $name, $value, $top = null)
+    public function select($remote = false)
     {
-        if (isset($this->_menu[$key])) {
-            throw new InvalidParamException('Existing key,Pleas Use Edit Function');
-        } elseif ($top !== null && !isset($this->_menu[$top])) {
-            throw new InvalidParamException('Not Found Top Key');
+        if ($remote) {
+            $result = Wechat::httpGet(self::SELECT_MENU_URL);
+            $menu = isset($result['errcode']) ? [] : $result['menu']['button'];
+            foreach ($menu as $key => $value) {
+                if (empty($value['sub_button'])) {
+                    unset($menu[$key]['sub_button']);
+                }
+            }
+            return $menu;
         } else {
-            $this->_menu[$key] = ['type' => $type, 'name' => $name, 'value' => $value, 'top' => $top];
+            return $this->_menu;
         }
     }
 
-    public function edit($key, $type, $name, $value, $top = null)
+    public function addButtonGroup($name)
     {
-        if (isset($this->_menu[$key])) {
-            $this->_menu[$key] = ['type' => $type, 'name' => $name, 'value' => $value, 'top' => $top];
-            return true;
+        $this->addButton(['name' => $name, 'sub_button' => []], null);
+        return $this;
+    }
+
+    public function addUrlButton($name, $url, $topName = null)
+    {
+        $this->addButton(['name' => $name, 'type' => 'view', 'url' => $url], $topName);
+        return $this;
+    }
+
+    public function addEventButton($type, $name, $key, $topName = null)
+    {
+        $this->addButton(['name' => $name, 'type' => $type, 'key' => $key], $topName);
+        return $this;
+    }
+
+    protected function addButton($data, $topName)
+    {
+        if ($topName === null) {
+            if (count($this->_menu) <= self::TOP_MENU_LIMIT) {
+                $this->_menu[] = $data;
+            }
         } else {
-            return false;
-        }
-    }
-
-    public function delete($key)
-    {
-        unset($this->_menu[$key]);
-        return true;
-    }
-
-    public function get($key)
-    {
-        return isset($this->_menu[$key]) ?: false;
-    }
-
-    public function getAll()
-    {
-        $menuList = [];
-        foreach ($this->_menu as $key => $menu) {
-            if ($menu['top'] === null) {
-                $menuList[$key] = $menu;
+            foreach ($this->_menu as $topKey => $topMenu) {
+                if ($topMenu['name'] == $topName && isset($topMenu['sub_button'])) {
+                    if (count($topMenu['sub_button']) <= self::SUB_MENU_LIMIT) {
+                        $this->_menu[$topKey]['sub_button'][] = $data;
+                    }
+                }
             }
         }
-        foreach ($this->_menu as $key => $menu) {
-            if ($menu['top'] !== null) {
-                $menuList[$menu['top']]['sub'][$key] = $menu;
-            }
-        }
-        return $menuList;
     }
 
-    public function convertMenu(array $menu)
+    public function delete($name)
     {
-        $return['name'] = $menu['name'];
-        $return['type'] = $menu['type'];
-        switch ($menu['type']) {
-            case 'click':
-                $return['key'] = $menu['value'];
-                break;
-            case 'view':
-                $return['url'] = $menu['value'];
-                break;
-            default:
-                throw new InvalidParamException('Unkown Menu Type');
+        foreach ($this->_menu as $topKey => $topMenu) {
+            if ($topMenu['name'] == $name) {
+                unset($this->_menu[$topKey]);
+            } elseif (!empty($topMenu['sub_button'])) {
+                foreach ($topMenu['sub_button'] as $subKey => $subMenu) {
+                    if ($subMenu['name'] == $name) {
+                        unset($this->_menu[$topKey]['sub_button'][$subKey]);
+                    }
+                }
+            }
         }
-        return $return;
+        return $this;
+    }
+
+    public function deleteAll()
+    {
+        if ($this->_menu === []) {
+            $result = Wechat::httpGet(self::DELETE_MENU_URL);
+            return $result['errcode'] == 0 ? true : false;
+        } else {
+            $this->_menu = [];
+            return $this;
+        }
+    }
+
+    public function save()
+    {
+        if ($this->_menu === []) {
+            return $this->deleteAll();
+        } else {
+            foreach ($this->_menu as $topKey => $topMenu) {
+                if (isset($topMenu['sub_button'])) {
+                    if (empty($topMenu['sub_button'])) {
+                        unset($this->_menu[$topKey]);
+                    }
+                }
+            }
+            $result = Wechat::httpRaw(self::CREATE_MENU_URL, Wechat::jsonEncode([
+                'button' => $this->_menu,
+            ]));
+            return $result['errcode'] == 0 ? true : false;
+        }
     }
 } 
