@@ -1,10 +1,4 @@
 #基于Yii2开发的微信API组件
-目前实现了下面接口
-##功能列表
-
-* 验证消息真实性
-* 接收数据并转换成数组
-
 ##安装方法
 在项目的`composer.json`的`require`数组内加入`"iit/yii2-wechat-component": "*"`
 
@@ -49,3 +43,16 @@ component=>[
         }
     }
 ```
+##使用手册
+此组件由下列子组件组成
+
+* Mass(高级群发接口)
+* Media(多媒体下载上传接口)
+* Menu(自定义菜单接口)
+* OAuth(网页OAuth 2.0验证接口)
+* QRCode(二维码接口)
+* Receive(接收微信消息接口)
+* Response(发送响应消息接口)
+* Service(发送客户消息接口)
+* Template(发送模板消息接口)
+* User(用户和用户分组管理接口)

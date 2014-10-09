@@ -22,6 +22,7 @@ use yii\helpers\ArrayHelper;
  * @property \iit\wechat\User $user
  * @property \iit\wechat\OAuth $oauth
  * @property \iit\wechat\Template $template
+ * @property \iit\wechat\Mass $mass
  *
  */
 class Component extends \yii\base\Component
@@ -58,10 +59,10 @@ class Component extends \yii\base\Component
         $classMap = ArrayHelper::merge($this->coreClass(), $this->classMap);
         if (isset($classMap[$appName]) && !empty($classMap[$appName])) {
             $name = 'wechat' . ucfirst($appName);
-            if (!\Yii::$container->has($name)) {
-                \Yii::$container->set($name, $classMap[$appName]);
+            if (!\Yii::$app->has($name)) {
+                \Yii::$app->set($name, $classMap[$appName]);
             }
-            return \Yii::$container->get($name);
+            return \Yii::$app->get($name);
         } else {
             throw new InvalidParamException("Not Found " . $appName);
         }
@@ -78,6 +79,8 @@ class Component extends \yii\base\Component
             'user' => '\iit\wechat\User',
             'oauth' => '\iit\wechat\OAuth',
             'template' => '\iit\wechat\Template',
+            'mass' => '\iit\wechat\Mass',
+            'qrcode' => '\iit\wechat\QRCode',
         ];
     }
 
