@@ -8,8 +8,10 @@
 
 namespace iit\api\wechat;
 
+use Yii;
 use yii\base\InvalidParamException;
 use yii\base\Object;
+use yii\helpers\Url;
 
 abstract class Base extends Object
 {
@@ -17,21 +19,38 @@ abstract class Base extends Object
 
     abstract protected function sendInternal();
 
+    /**
+     * @return mixed
+     */
+
     public function send()
     {
+        $this->setNonceStr();
+        $this->setSign();
         return $this->sendInternal();
     }
 
+    /**
+     * @return array
+     */
 
     public function getSendData()
     {
         return $this->_send;
     }
 
+    /**
+     * @return $this|Base
+     */
+
     public function setSign()
     {
         return $this->setData('sign', Common::$wechat->paySign($this->getSendData()));
     }
+
+    /**
+     * @return mixed
+     */
 
     public function getSign()
     {
@@ -48,6 +67,12 @@ abstract class Base extends Object
         return $this->setData('mch_id', $mchid);
     }
 
+    public function setNonceStr()
+    {
+        $this->setData('nonce_str', Yii::$app->security->generateRandomString());
+        return $this;
+    }
+
     protected function setData($k, $v)
     {
         $this->_send[$k] = $v;
@@ -59,18 +84,8 @@ abstract class Base extends Object
         return isset($this->_send[$k]) ? $this->_send[$k] : null;
     }
 
-    public function http($url, $params = null, $type = 'get', $token = false)
+    public function http($url, $params = null, $type = 'get')
     {
-        $url = Url::get($url);
-        if ($token) {
-            if ($token == 'url') {
-                $url .= (stripos($url, '?') === false ? '?' : '&') . "access_token=" . self::getAccessToken();
-            } elseif ($token == 'params') {
-                $params['access_token'] = self::getAccessToken();
-            } else {
-                throw new InvalidParamException("Invalid token type '{$token}' called.");
-            }
-        }
         $curl = curl_init();
         switch ($type) {
             case 'get':

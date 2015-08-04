@@ -17,4 +17,9 @@ class NotifyAction extends Action
      * @var Common
      */
     public $wechat = 'wechat';
+
+    public function run()
+    {
+        return 'aa';
+    }
 }

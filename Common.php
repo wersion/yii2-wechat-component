@@ -8,6 +8,7 @@
 
 namespace iit\api\wechat;
 
+use iit\api\wechat\pay\UnifiedOrder;
 use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
@@ -87,12 +88,12 @@ class Common extends Component
     }
 
     /**
-     * @return PayUnifiedOrder
+     * @return UnifiedOrder
      */
 
     public function getPayUnifiedOrder()
     {
-        return (new PayUnifiedOrder())->setAppid($this->appID)->setMchid($this->merchantID);
+        return (new UnifiedOrder())->setAppid($this->appID)->setMchid($this->merchantID);
     }
 
     /**
@@ -144,7 +145,7 @@ class Common extends Component
         }
         ksort($array);
         $signStr = static::arrayToPaySignStr(array_filter($array));
-        $signStr .= $signStr . '&key=' . $this->paySecret;
+        $signStr .= '&key=' . $this->paySecret;
         return strtoupper(md5($signStr));
     }
 
