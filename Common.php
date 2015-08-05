@@ -8,6 +8,7 @@
 
 namespace iit\api\wechat;
 
+use iit\api\wechat\pay\CallApp;
 use iit\api\wechat\pay\UnifiedOrder;
 use Yii;
 use yii\base\Component;
@@ -94,6 +95,15 @@ class Common extends Component
     public function getPayUnifiedOrder()
     {
         return (new UnifiedOrder())->setAppid($this->appID)->setMchid($this->merchantID);
+    }
+
+    /**
+     * @return CallApp
+     */
+
+    public function getPayCallApp()
+    {
+        return (new CallApp())->setAppid($this->appID)->setPartnerId($this->merchantID);
     }
 
     /**
@@ -218,7 +228,8 @@ class Common extends Component
         if (!function_exists("simplexml_load_string")) {
             throw new \BadFunctionCallException("need  function simplexml_load_string");
         }
-        $obj = simplexml_load_string($xml);
+        libxml_disable_entity_loader(true);
+        $obj = json_decode(json_encode(simplexml_load_string($xml, 'SimpleXMLElement', LIBXML_NOCDATA)), true);
         return empty($obj) ? [] : json_decode(json_encode($obj), true);
     }
 

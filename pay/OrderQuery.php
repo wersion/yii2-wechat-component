@@ -6,7 +6,7 @@
  * Time: 14:19
  */
 
-namespace iit\wechat;
+namespace iit\api\wechat\pay;
 
 
 class OrderQuery

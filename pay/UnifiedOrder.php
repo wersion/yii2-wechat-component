@@ -13,11 +13,17 @@ use iit\api\wechat\Common;
 
 class UnifiedOrder extends Base
 {
+    public function init()
+    {
+        parent::init();
+        $this->setNonceStr();
+    }
+
 
     protected function sendInternal()
     {
         $result = $this->http('https://api.mch.weixin.qq.com/pay/unifiedorder', Common::arrayToXml($this->getSendData()), 'raw');
-        return $result;
+        return Common::xmlToArray($result);
     }
 
     /**

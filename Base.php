@@ -25,7 +25,6 @@ abstract class Base extends Object
 
     public function send()
     {
-        $this->setNonceStr();
         $this->setSign();
         return $this->sendInternal();
     }
