@@ -11,7 +11,7 @@ namespace iit\api\wechat\pay;
 use iit\api\wechat\Common;
 use yii\base\Action;
 
-class NotifyAction extends Action
+class PayNotifyAction extends Action
 {
     /**
      * @var Common

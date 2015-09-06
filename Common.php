@@ -19,6 +19,10 @@ use yii\caching\Cache;
 use yii\di\Instance;
 use yii\web\BadRequestHttpException;
 
+/**
+ * Class Common
+ * @package iit\api\wechat
+ */
 class Common extends Component
 {
     /**
@@ -67,11 +71,17 @@ class Common extends Component
 
     public $cache = 'cache';
 
-    /**
-     * @var Common
-     */
-
     public static $wechat;
+
+
+    public function behaviors()
+    {
+        return [
+            AccessToken::className(),
+            JsApiTicket::className(),
+            RegisterJsApi::className(),
+        ];
+    }
 
     /**
      * 初始化组件
@@ -85,25 +95,7 @@ class Common extends Component
         } else {
             throw new InvalidConfigException("Cache must be turned on");
         }
-        static::$wechat = $this;
-    }
-
-    /**
-     * @return UnifiedOrder
-     */
-
-    public function getPayUnifiedOrder()
-    {
-        return (new UnifiedOrder())->setAppid($this->appID)->setMchid($this->merchantID);
-    }
-
-    /**
-     * @return CallApp
-     */
-
-    public function getPayCallApp()
-    {
-        return (new CallApp())->setAppid($this->appID)->setPartnerId($this->merchantID);
+        self::$wechat = $this;
     }
 
     /**
@@ -182,7 +174,7 @@ class Common extends Component
      * @return array
      */
 
-    public static function objectToArray($object)
+    public function objectToArray($object)
     {
         if (!$object instanceof Object) {
             throw new InvalidParamException("\$object must be extend \\yii\\base\\Object");
@@ -200,7 +192,7 @@ class Common extends Component
      * @return string
      */
 
-    public static function arrayToXml($array, $header = true)
+    public function arrayToXml($array, $header = true)
     {
         if (!is_array($array) && !$array instanceof Object) {
             throw new InvalidParamException("\$array must be type array or Object");
@@ -223,7 +215,7 @@ class Common extends Component
      * @return array|mixed
      */
 
-    public static function xmlToArray($xml)
+    public function xmlToArray($xml)
     {
         if (!function_exists("simplexml_load_string")) {
             throw new \BadFunctionCallException("need  function simplexml_load_string");
@@ -240,7 +232,7 @@ class Common extends Component
      * @return string
      */
 
-    public static function arrayToPaySignStr($array)
+    public function arrayToPaySignStr($array)
     {
         if (!is_array($array)) {
             throw new InvalidParamException("\$array must be type array ");
@@ -250,6 +242,46 @@ class Common extends Component
             $str .= ($str == '' ? $k . '=' . $v : '&' . $k . '=' . $v);
         }
         return $str;
+    }
+
+    public function http($url, $params = null, $type = 'get')
+    {
+        $curl = curl_init();
+        switch ($type) {
+            case 'get':
+                is_array($params) && $params = http_build_query($params);
+                !empty($params) && $url .= (stripos($url, '?') === false ? '?' : '&') . $params;
+                break;
+            case 'post':
+                curl_setopt($curl, CURLOPT_POST, true);
+                if (!is_array($params)) {
+                    throw new InvalidParamException("Post data must be an array.");
+                }
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
+                break;
+            case 'raw':
+                curl_setopt($curl, CURLOPT_POST, true);
+                if (is_array($params)) {
+                    throw new InvalidParamException("Post raw data must not be an array.");
+                }
+                curl_setopt($curl, CURLOPT_POSTFIELDS, $params);
+                break;
+            default:
+                throw new InvalidParamException("Invalid http type '{$type}' called.");
+        }
+        if (stripos($url, "https://") !== false) {
+            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, false);
+        }
+        curl_setopt($curl, CURLOPT_URL, $url);
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+        $content = curl_exec($curl);
+        $status = curl_getinfo($curl);
+        curl_close($curl);
+        if (isset($status['http_code']) && intval($status['http_code']) == 200) {
+            return $content;
+        }
+        return false;
     }
 
 }
