@@ -9,12 +9,13 @@
 namespace iit\api\wechat;
 
 
-use yii\base\Behavior;
+use iit\api\Wechat;
+use yii\base\Behavior as BaseBehavior;
 
-class WechatBehavior extends Behavior
+class Behavior extends BaseBehavior
 {
     /**
-     * @var Common
+     * @var Wechat
      */
     public $owner;
 }

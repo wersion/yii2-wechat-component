@@ -8,26 +8,31 @@
 
 namespace iit\api\wechat;
 
-class AccessToken extends WechatBehavior
+class AccessToken extends Behavior
 {
     const CACHE_KEY = 'wechat_access_token';
 
     public function getAccessToken()
     {
-        if (!$accessToken = $this->owner->cache->get(self::CACHE_KEY)) {
+        if (!$accessToken = $this->owner->cache->get($this->getCacheKey())) {
             $result = $this->owner->http('https://api.weixin.qq.com/cgi-bin/token', [
                 'grant_type' => 'client_credential',
-                'appid' => 'wx61b675f58783745f',
-                'secret' => 'ab5a99d278d4ac1b2de2068eaf39f9a7'
+                'appid' => $this->owner->appID,
+                'secret' => $this->owner->appSecret,
             ]);
             if ($result) {
                 $result = json_decode($result, true);
-                $this->owner->cache->set(self::CACHE_KEY, $result['access_token'], $result['expires_in']);
+                $this->owner->cache->set($this->getCacheKey(), $result['access_token'], $result['expires_in']);
                 $accessToken = $result['access_token'];
             } else {
                 $accessToken = null;
             }
         }
         return $accessToken;
+    }
+
+    public function getCacheKey()
+    {
+        return self::CACHE_KEY . $this->owner->appID;
     }
 }

@@ -6,10 +6,16 @@
  * Time: 13:44
  */
 
-namespace iit\api\wechat;
+namespace iit\api;
 
-use iit\api\wechat\pay\CallApp;
-use iit\api\wechat\pay\UnifiedOrder;
+use iit\api\wechat\AccessToken;
+use iit\api\wechat\BaseUserInfo;
+use iit\api\wechat\BindJsPay;
+use iit\api\wechat\JsApiTicket;
+use iit\api\wechat\PayUnifiedOrder;
+use iit\api\wechat\RegisterJsApi;
+use iit\api\wechat\ThirdPartyLogin;
+use iit\api\wechat\WebOpenId;
 use Yii;
 use yii\base\Component;
 use yii\base\InvalidConfigException;
@@ -22,8 +28,11 @@ use yii\web\BadRequestHttpException;
 /**
  * Class Common
  * @package iit\api\wechat
+ * @method BaseUserInfo getBaseUserInfo
+ * @method ThirdPartyLogin getThirdPartyOpenId
+ * @method ThirdPartyLogin getThirdPartyUnionId
  */
-class Common extends Component
+class Wechat extends Component
 {
     /**
      * 公众号应用ID
@@ -80,6 +89,11 @@ class Common extends Component
             AccessToken::className(),
             JsApiTicket::className(),
             RegisterJsApi::className(),
+            PayUnifiedOrder::className(),
+            BaseUserInfo::className(),
+            WebOpenId::className(),
+            BindJsPay::className(),
+            ThirdPartyLogin::className(),
         ];
     }
 
