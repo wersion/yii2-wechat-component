@@ -11,6 +11,7 @@ namespace iit\api;
 use iit\api\wechat\AccessToken;
 use iit\api\wechat\BaseUserInfo;
 use iit\api\wechat\BindJsPay;
+use iit\api\wechat\GetAccessTokenByCode;
 use iit\api\wechat\JsApiTicket;
 use iit\api\wechat\PayUnifiedOrder;
 use iit\api\wechat\RegisterJsApi;
@@ -28,9 +29,9 @@ use yii\web\BadRequestHttpException;
 /**
  * Class Common
  * @package iit\api\wechat
- * @method BaseUserInfo getBaseUserInfo
- * @method ThirdPartyLogin getThirdPartyOpenId
- * @method ThirdPartyLogin getThirdPartyUnionId
+ * @method BaseUserInfo getBaseUserInfo()
+ * @method GetAccessTokenByCode getAccessTokenByCode($code)
+ * @method ThirdPartyLogin getThirdPartyUserInfo()
  */
 class Wechat extends Component
 {
@@ -94,6 +95,7 @@ class Wechat extends Component
             WebOpenId::className(),
             BindJsPay::className(),
             ThirdPartyLogin::className(),
+            GetAccessTokenByCode::className(),
         ];
     }
 
